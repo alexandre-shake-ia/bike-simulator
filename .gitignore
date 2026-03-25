@@ -1,0 +1,17 @@
+# Environnement virtuel Python (inutile sur GitHub)
+venv/
+
+# Fichiers temporaires Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Fichiers système Windows
+Thumbs.db
+desktop.ini
+
+# Fichiers VS Code
+.vscode/
+
+# Données personnelles
+data/
