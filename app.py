@@ -53,9 +53,11 @@ st.subheader("📂 Importe ton parcours GPX")
 fichier = st.file_uploader("Glisse ton fichier .gpx ici", type=["gpx"])
 
 if fichier is not None:
-    chemin_temp = f"data/{fichier.name}"
-    with open(chemin_temp, "wb") as f:
-        f.write(fichier.getbuffer())
+    import tempfile, os
+    suffix = os.path.splitext(fichier.name)[1]
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+        tmp.write(fichier.getbuffer())
+        chemin_temp = tmp.name
 
     if st.button("🚀 Lancer la simulation", type="primary"):
         with st.spinner("Calcul en cours..."):
