@@ -37,6 +37,16 @@ puissance_w = st.sidebar.number_input(
     "Puissance (W)",
     min_value=50, max_value=600, value=239
 )
+st.sidebar.subheader("👥 Peloton")
+peloton = st.sidebar.toggle("Rouler en peloton")
+duree_peloton_h = 0.0
+if peloton:
+    duree_peloton_h = st.sidebar.slider(
+        "Durée en peloton (heures)",
+        min_value=0.0, max_value=5.0, value=1.0, step=0.25,
+        help="Le peloton réduit la résistance aéro de 30%"
+    )
+    st.sidebar.info(f"⚡ Économie aéro pendant {duree_peloton_h}h")
 
 st.sidebar.subheader("🌤️ Météo")
 v_vent_kmh = st.sidebar.slider(
@@ -62,13 +72,15 @@ if fichier is not None:
     if st.button("🚀 Lancer la simulation", type="primary"):
         with st.spinner("Calcul en cours..."):
             parametres = {
-                "puissance_w"  : puissance_w,
-                "poids_kg"     : poids_kg,
-                "cda"          : cda,
-                "v_vent_kmh"   : v_vent_kmh,
-                "dir_vent_deg" : dir_vent_deg,
-                "temperature_c": 20
-            }
+    "puissance_w"    : puissance_w,
+    "poids_kg"       : poids_kg,
+    "cda"            : cda,
+    "v_vent_kmh"     : v_vent_kmh,
+    "dir_vent_deg"   : dir_vent_deg,
+    "temperature_c"  : 20,
+    "peloton"        : peloton,
+    "duree_peloton_h": duree_peloton_h
+}
             # On sauvegarde le résultat en mémoire
             st.session_state.resultat = simuler(chemin_temp, parametres)
 

@@ -3,17 +3,87 @@ from physics import calculer_vitesse, composante_vent_face
 
 def simuler(chemin_gpx, parametres):
     """
-    Simule le temps d'un parcours vélo.
-    
     parametres = {
-        "puissance_w"   : puissance moyenne en watts,
-        "poids_kg"      : poids total cycliste + vélo,
-        "cda"           : coefficient aérodynamique,
-        "v_vent_kmh"    : vitesse du vent en km/h,
-        "dir_vent_deg"  : direction du vent en degrés (0=Nord, 90=Est),
-        "temperature_c" : température en °C (optionnel)
+        "puissance_w"    : puissance moyenne en watts,
+        "poids_kg"       : poids total cycliste + vélo,
+        "cda"            : coefficient aérodynamique,
+        "v_vent_kmh"     : vitesse du vent en km/h,
+        "dir_vent_deg"   : direction du vent en degrés,
+        "temperature_c"  : température en °C,
+        "peloton"        : True/False,
+        "duree_peloton_h": durée en peloton en heures (ex: 1.5)
     }
     """
+    points    = lire_gpx(chemin_gpx)
+    altitudes = lisser_altitudes(points, fenetre=5)
+    segments  = construire_segments(points, altitudes)
+
+    temps_total       = 0
+    temps_en_peloton  = 0
+    resultats         = []
+
+    # Réduction du CdA en peloton (~30% d'économie aéro)
+    CDA_PELOTON = parametres["cda"] * 0.70
+    DUREE_PELOTON_S = parametres.get("duree_peloton_h", 0) * 3600
+
+    for seg in segments:
+        pente = seg["pente_pct"]
+
+        # Stratégie de puissance selon la pente
+        if pente > 3:
+            watts = parametres["puissance_w"] * 1.15
+        elif pente < -5:
+            watts = 0
+        else:
+            watts = parametres["puissance_w"]
+
+        # CdA effectif selon peloton ou non
+        if parametres.get("peloton") and temps_en_peloton < DUREE_PELOTON_S:
+            cda_effectif = CDA_PELOTON
+            en_peloton   = True
+        else:
+            cda_effectif = parametres["cda"]
+            en_peloton   = False
+
+        vent_face = composante_vent_face(
+            parametres["dir_vent_deg"],
+            seg["cap_deg"],
+            parametres["v_vent_kmh"] / 3.6
+        )
+
+        v_ms = calculer_vitesse(
+            watts        = watts,
+            pente_pct    = pente,
+            poids_kg     = parametres["poids_kg"],
+            cda          = cda_effectif,
+            vent_face_ms = vent_face
+        )
+
+        temps_seg     = seg["distance_m"] / v_ms
+        temps_total  += temps_seg
+
+        if en_peloton:
+            temps_en_peloton += temps_seg
+
+        resultats.append({
+            **seg,
+            "watts"      : watts,
+            "vitesse_kmh": round(v_ms * 3.6, 1),
+            "temps_seg_s": round(temps_seg, 2),
+            "peloton"    : en_peloton,
+        })
+
+    dist_totale_m = sum(s["distance_m"] for s in resultats)
+    stats         = stats_parcours(segments)
+
+    return {
+        "temps_total_s"      : round(temps_total),
+        "temps_formate"      : formater_temps(temps_total),
+        "distance_km"        : round(dist_totale_m / 1000, 2),
+        "vitesse_moyenne_kmh": round((dist_totale_m / temps_total) * 3.6, 1),
+        "denivele_pos_m"     : stats["denivele_pos"],
+        "segments"           : resultats,
+    }
     # --- 1. Chargement et préparation du parcours ---
     points   = lire_gpx(chemin_gpx)
     altitudes = lisser_altitudes(points, fenetre=5)
