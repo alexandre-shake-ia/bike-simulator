@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ALLURE — Simulateur Cycliste</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+  :root {
+    --bg:       #080a0d;
+    --surface:  #0f1217;
+    --surface2: #161b22;
+    --surface3: #1c2230;
+    --border:   rgba(255,255,255,0.07);
+    --accent:   #c8f135;
+    --accent2:  #38bdf8;
+    --text:     #eef0f4;
+    --muted:    #5a6272;
+    --muted2:   #8892a0;
+    --success:  #22c55e;
+    --warn:     #f59e0b;
+    --danger:   #ef4444;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-size: 14px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* TOPBAR */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    height: 52px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 10;
+  }
+  .topbar::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, var(--accent), transparent 40%);
+    opacity: 0.5;
+  }
+  .logo {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 20px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo-dot {
+    width: 7px; height: 7px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: blink 2.5s ease-in-out infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .status-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted2);
+  }
+  .status-pill .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--muted);
+  }
+  .status-pill.ready .dot  { background: var(--success); box-shadow: 0 0 6px var(--success); }
+  .status-pill.loading .dot{ background: var(--warn); animation: blink 0.8s infinite; }
+  .status-pill.error .dot  { background: var(--danger); }
+
+  /* LAYOUT */
+  .workspace {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* LEFT PANEL */
+  .panel-left {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  .panel-left::-webkit-scrollbar { width: 3px; }
+  .panel-left::-webkit-scrollbar-thumb { background: var(--surface3); }
+
+  .panel-section { padding: 18px 18px 0; }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-header-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted2);
+  }
+
+  /* UPLOAD */
+  .upload-zone {
+    border: 1px dashed rgba(200,241,53,0.25);
+    background: rgba(200,241,53,0.02);
+    padding: 20px 14px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    margin-bottom: 4px;
+  }
+  .upload-zone:hover, .upload-zone.dragover {
+    border-color: rgba(200,241,53,0.6);
+    background: rgba(200,241,53,0.05);
+  }
+  .upload-zone input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer;
+  }
+  .upload-icon { font-size: 22px; margin-bottom: 6px; }
+  .upload-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 3px;
+  }
+  .upload-hint { font-size: 11px; color: var(--muted); }
+  .file-name { font-size: 11px; color: var(--accent); margin-top: 6px; font-weight: 500; display: none; }
+
+  /* FIELDS */
+  .field { margin-bottom: 12px; }
+  .field-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+  }
+  .field-label span:first-child {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted2);
+  }
+  .field-value {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--accent);
+  }
+  .field-hint {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 4px;
+    font-style: italic;
+    line-height: 1.4;
+  }
+
+  input[type="range"] {
+    width: 100%; height: 3px;
+    appearance: none;
+    background: var(--surface3);
+    outline: none; cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    width: 13px; height: 13px;
+    background: var(--accent);
+    border-radius: 50%; cursor: pointer;
+    box-shadow: 0 0 8px rgba(200,241,53,0.4);
+  }
+
+  .number-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+    padding: 9px 12px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .number-input:focus { border-color: rgba(200,241,53,0.4); }
+
+  /* TOGGLE */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+  .toggle-label {
+    font-size: 11px; font-weight: 500;
+    color: var(--muted2);
+    text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .toggle {
+    width: 34px; height: 18px;
+    background: var(--surface3);
+    border-radius: 9px; cursor: pointer;
+    position: relative; transition: background 0.2s; flex-shrink: 0;
+  }
+  .toggle.on { background: var(--accent); }
+  .toggle::after {
+    content: ''; position: absolute;
+    top: 2px; left: 2px;
+    width: 14px; height: 14px;
+    background: var(--bg);
+    border-radius: 50%; transition: transform 0.2s;
+  }
+  .toggle.on::after { transform: translateX(16px); }
+  .peloton-extra { display: none; }
+  .peloton-extra.visible { display: block; }
+
+  /* BUTTON */
+  .btn-simulate {
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 14px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    margin: 16px 18px;
+    width: calc(100% - 36px);
+  }
+  .btn-simulate:hover:not(:disabled) {
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(200,241,53,0.2);
+  }
+  .btn-simulate:disabled { opacity: 0.4; cursor: not-allowed; }
+  .spinner {
+    width: 13px; height: 13px;
+    border: 2px solid rgba(0,0,0,0.3);
+    border-top-color: var(--bg);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* RIGHT PANEL */
+  .panel-right {
+    display: flex; flex-direction: column;
+    overflow: hidden; background: var(--bg);
+  }
+
+  .empty-state {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 14px; color: var(--muted);
+  }
+  .empty-icon { font-size: 44px; opacity: 0.3; }
+  .empty-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 18px;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);
+  }
+  .empty-sub { font-size: 12px; color: var(--muted); opacity: 0.6; }
+
+  /* RESULTS */
+  .results { display: none; flex-direction: column; height: 100%; overflow: hidden; }
+  .results.visible { display: flex; }
+
+  /* METRICS */
+  .metrics-row {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .metric-card {
+    padding: 16px 20px;
+    border-right: 1px solid var(--border);
+    position: relative; overflow: hidden;
+  }
+  .metric-card:last-child { border-right: none; }
+  .metric-card::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 2px;
+    background: var(--accent);
+    transform: scaleX(0); transform-origin: left;
+    transition: transform 0.6s ease;
+  }
+  .metric-card.animate::before { transform: scaleX(1); }
+  .metric-card:nth-child(2)::before { background: var(--accent2); }
+  .metric-card:nth-child(3)::before { background: #a78bfa; }
+  .metric-card:nth-child(4)::before { background: var(--warn); }
+  .metric-label {
+    font-size: 10px; font-weight: 500;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 6px;
+  }
+  .metric-val {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900; font-size: 28px;
+    line-height: 1; color: var(--text); letter-spacing: -0.02em;
+  }
+  .metric-val .unit { font-size: 13px; font-weight: 400; color: var(--muted2); margin-left: 2px; }
+
+  /* CONTENT AREA */
+  .content-area {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 180px;
+    gap: 1px;
+    background: var(--border);
+    overflow: hidden;
+  }
+  .content-block {
+    background: var(--bg);
+    display: flex; flex-direction: column;
+    overflow: hidden; padding: 14px 16px;
+  }
+  .content-block.full-width { grid-column: 1 / -1; }
+
+  .block-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 10px;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 10px; flex-shrink: 0;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .legend { display: flex; gap: 14px; margin-left: auto; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--muted2); }
+  .legend-line { width: 16px; height: 2px; border-radius: 1px; }
+  .legend-bar  { width: 10px; height: 10px; border-radius: 2px; }
+
+  /* MAP */
+  #map { flex: 1; min-height: 0; }
+  .leaflet-container { background: #0f1217 !important; }
+  .leaflet-tile { filter: brightness(0.7) saturate(0.4); }
+
+  canvas { flex: 1; min-height: 0; }
+
+  /* TABLE */
+  .table-wrap { overflow-y: auto; flex: 1; }
+  .table-wrap::-webkit-scrollbar { width: 3px; }
+  .table-wrap::-webkit-scrollbar-thumb { background: var(--surface3); }
+  table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  thead th {
+    position: sticky; top: 0;
+    background: var(--surface);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 10px;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--muted); padding: 7px 12px;
+    text-align: left; border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  tbody tr { border-bottom: 1px solid rgba(255,255,255,0.03); transition: background 0.15s; }
+  tbody tr:hover { background: var(--surface2); }
+  tbody td { padding: 6px 12px; color: var(--muted2); white-space: nowrap; }
+  .speed-badge { display: inline-flex; align-items: center; gap: 5px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px; }
+  .speed-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+  .toast {
+    position: fixed; bottom: 20px; right: 20px;
+    background: var(--danger); color: #fff;
+    padding: 10px 18px; font-size: 13px; font-weight: 500;
+    display: none; z-index: 999; max-width: 300px;
+  }
+  .toast.visible { display: block; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo"><div class="logo-dot"></div>ALLURE</div>
+  <div class="status-pill" id="statusPill">
+    <div class="dot"></div>
+    <span id="statusText">En attente</span>
+  </div>
+</div>
+
+<div class="workspace">
+
+  <!-- LEFT -->
+  <div class="panel-left">
+
+    <div class="panel-section">
+      <div class="section-header">
+        <span>📂</span><span class="section-header-label">Parcours GPX</span>
+      </div>
+      <div class="upload-zone" id="uploadZone">
+        <input type="file" id="gpxFile" accept=".gpx">
+        <div class="upload-icon">🗺️</div>
+        <span class="upload-label">Glisse ton fichier</span>
+        <span class="upload-hint">.gpx — Strava, Komoot, Garmin</span>
+        <div class="file-name" id="fileName"></div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="section-header">
+        <span>👤</span><span class="section-header-label">Cycliste & Vélo</span>
+      </div>
+      <div class="field">
+        <div class="field-label">
+          <span>Poids total</span>
+          <span class="field-value" id="poidsVal">90 kg</span>
+        </div>
+        <input type="range" id="poids" min="40" max="150" value="90"
+          oninput="document.getElementById('poidsVal').textContent=this.value+' kg'">
+      </div>
+      <div class="field">
+        <div class="field-label">
+          <span>Aérodynamisme CdA</span>
+          <span class="field-value" id="cdaVal">0.26</span>
+        </div>
+        <input type="range" id="cda" min="0.20" max="0.50" value="0.26" step="0.01"
+          oninput="document.getElementById('cdaVal').textContent=parseFloat(this.value).toFixed(2)">
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="section-header">
+        <span>⚡</span><span class="section-header-label">Puissance</span>
+      </div>
+      <div class="field">
+        <div class="field-label"><span>Watts</span></div>
+        <input type="number" class="number-input" id="watts" value="239" min="50" max="600">
+        <div class="field-hint">Normalized Power (NP) — puissance normalisée, représentative de l'effort réel sur parcours vallonné.</div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="section-header">
+        <span>👥</span><span class="section-header-label">Peloton</span>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">Rouler en peloton</span>
+        <div class="toggle" id="pelotonToggle" onclick="togglePeloton()"></div>
+      </div>
+      <div class="peloton-extra" id="pelotonExtra">
+        <div class="field">
+          <div class="field-label">
+            <span>Durée en peloton</span>
+            <span class="field-value" id="pelotonVal">1.0 h</span>
+          </div>
+          <input type="range" id="pelotonDuree" min="0" max="5" value="1" step="0.25"
+            oninput="document.getElementById('pelotonVal').textContent=parseFloat(this.value).toFixed(1)+' h'">
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="section-header">
+        <span>🌬️</span><span class="section-header-label">Météo</span>
+      </div>
+      <div class="field">
+        <div class="field-label">
+          <span>Vitesse vent</span>
+          <span class="field-value" id="ventVal">5 km/h</span>
+        </div>
+        <input type="range" id="vent" min="0" max="80" value="5"
+          oninput="document.getElementById('ventVal').textContent=this.value+' km/h'">
+      </div>
+      <div class="field">
+        <div class="field-label">
+          <span>Direction vent</span>
+          <span class="field-value" id="dirVal">0° N</span>
+        </div>
+        <input type="range" id="dir" min="0" max="359" value="0"
+          oninput="updateDir(this.value)">
+      </div>
+    </div>
+
+    <button class="btn-simulate" id="btnSimulate" onclick="lancerSimulation()" disabled>
+      <div class="spinner" id="spinner"></div>
+      <span id="btnText">Importe un GPX</span>
+    </button>
+
+  </div>
+
+  <!-- RIGHT -->
+  <div class="panel-right">
+
+    <div class="empty-state" id="emptyState">
+      <div class="empty-icon">🚴</div>
+      <div class="empty-title">ALLURE</div>
+      <div class="empty-sub">Importe un fichier GPX et lance la simulation</div>
+    </div>
+
+    <div class="results" id="results">
+
+      <div class="metrics-row">
+        <div class="metric-card" id="mc0">
+          <div class="metric-label">⏱ Temps estimé</div>
+          <div class="metric-val" id="mTemps">—</div>
+        </div>
+        <div class="metric-card" id="mc1">
+          <div class="metric-label">⚡ Vitesse moyenne</div>
+          <div class="metric-val" id="mVitesse">—</div>
+        </div>
+        <div class="metric-card" id="mc2">
+          <div class="metric-label">📏 Distance</div>
+          <div class="metric-val" id="mDist">—</div>
+        </div>
+        <div class="metric-card" id="mc3">
+          <div class="metric-label">⛰ Dénivelé +</div>
+          <div class="metric-val" id="mDeniv">—</div>
+        </div>
+      </div>
+
+      <div class="content-area">
+
+        <div class="content-block">
+          <div class="block-title">🗺 Carte GPS</div>
+          <div id="map"></div>
+        </div>
+
+        <div class="content-block">
+          <div class="block-title">
+            Vitesse & Puissance
+            <div class="legend">
+              <div class="legend-item">
+                <div class="legend-line" style="background:#c8f135"></div>Vitesse
+              </div>
+              <div class="legend-item">
+                <div class="legend-bar" style="background:rgba(56,189,248,0.6)"></div>Puissance
+              </div>
+            </div>
+          </div>
+          <canvas id="chartCombo"></canvas>
+        </div>
+
+        <div class="content-block full-width">
+          <div class="block-title">📊 Segments — 1 km / 1 km</div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Km</th>
+                  <th>Alt. moy</th>
+                  <th>Pente moy</th>
+                  <th>Vitesse moy</th>
+                  <th>Puissance moy</th>
+                  <th>Temps</th>
+                  <th>Peloton</th>
+                </tr>
+              </thead>
+              <tbody id="tableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const API = "http://127.0.0.1:8000";
+let pelotonOn = false;
+let chartCombo = null;
+let leafletMap = null;
+
+function updateDir(val) {
+  const dirs = ["N","NE","E","SE","S","SO","O","NO"];
+  document.getElementById('dirVal').textContent = val + '° ' + dirs[Math.round(val/45)%8];
+}
+
+function togglePeloton() {
+  pelotonOn = !pelotonOn;
+  document.getElementById('pelotonToggle').classList.toggle('on', pelotonOn);
+  document.getElementById('pelotonExtra').classList.toggle('visible', pelotonOn);
+}
+
+document.getElementById('gpxFile').addEventListener('change', function() {
+  if (this.files[0]) {
+    const fn = document.getElementById('fileName');
+    fn.textContent = '✓ ' + this.files[0].name;
+    fn.style.display = 'block';
+    document.getElementById('btnSimulate').disabled = false;
+    document.getElementById('btnText').textContent = 'Simuler';
+    setStatus('ready', 'Prêt');
+  }
+});
+
+const zone = document.getElementById('uploadZone');
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+zone.addEventListener('drop', e => {
+  e.preventDefault(); zone.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file && file.name.endsWith('.gpx')) {
+    const dt = new DataTransfer(); dt.items.add(file);
+    document.getElementById('gpxFile').files = dt.files;
+    document.getElementById('gpxFile').dispatchEvent(new Event('change'));
+  }
+});
+
+function setStatus(type, text) {
+  document.getElementById('statusPill').className = 'status-pill ' + type;
+  document.getElementById('statusText').textContent = text;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('visible');
+  setTimeout(() => t.classList.remove('visible'), 4000);
+}
+
+async function lancerSimulation() {
+  const file = document.getElementById('gpxFile').files[0];
+  if (!file) return;
+  document.getElementById('spinner').style.display = 'block';
+  document.getElementById('btnText').textContent = 'Calcul...';
+  document.getElementById('btnSimulate').disabled = true;
+  setStatus('loading', 'Simulation...');
+
+  const form = new FormData();
+  form.append('fichier',         file);
+  form.append('puissance_w',     document.getElementById('watts').value);
+  form.append('poids_kg',        document.getElementById('poids').value);
+  form.append('cda',             document.getElementById('cda').value);
+  form.append('v_vent_kmh',      document.getElementById('vent').value);
+  form.append('dir_vent_deg',    document.getElementById('dir').value);
+  form.append('peloton',         pelotonOn);
+  form.append('duree_peloton_h', document.getElementById('pelotonDuree').value);
+
+  try {
+    const res = await fetch(`${API}/simulate`, { method: 'POST', body: form });
+    if (!res.ok) throw new Error('Erreur serveur ' + res.status);
+    const data = await res.json();
+    afficherResultats(data);
+    setStatus('ready', 'Terminé');
+  } catch(e) {
+    showToast('Erreur : ' + e.message);
+    setStatus('error', 'Erreur');
+  } finally {
+    document.getElementById('btnSimulate').disabled = false;
+    document.getElementById('spinner').style.display = 'none';
+    document.getElementById('btnText').textContent = 'Relancer';
+  }
+}
+
+function agregerParKm(segs) {
+  const buckets = {};
+  for (const s of segs) {
+    const km = Math.floor(s.distance_cumulee_km);
+    if (!buckets[km]) buckets[km] = [];
+    buckets[km].push(s);
+  }
+  return Object.entries(buckets).sort((a,b)=>+a[0]-+b[0]).map(([km, arr]) => ({
+    km: parseInt(km) + 1,
+    alt_moy:     Math.round(arr.reduce((a,s)=>a+s.altitude_m,0)/arr.length),
+    pente_moy:   +(arr.reduce((a,s)=>a+s.pente_pct,0)/arr.length).toFixed(1),
+    vitesse_moy: +(arr.reduce((a,s)=>a+s.vitesse_kmh,0)/arr.length).toFixed(1),
+    watts_moy:   Math.round(arr.reduce((a,s)=>a+s.watts,0)/arr.length),
+    temps_s:     arr.reduce((a,s)=>a+s.temps_seg_s,0),
+    peloton:     arr.some(s=>s.peloton),
+  }));
+}
+
+function afficherResultats(data) {
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('results').classList.add('visible');
+
+  document.getElementById('mTemps').innerHTML   = data.temps_formate;
+  document.getElementById('mVitesse').innerHTML = data.vitesse_moyenne_kmh+'<span class="unit">km/h</span>';
+  document.getElementById('mDist').innerHTML    = data.distance_km+'<span class="unit">km</span>';
+  document.getElementById('mDeniv').innerHTML   = data.denivele_pos_m+'<span class="unit">m</span>';
+  setTimeout(()=>[0,1,2,3].forEach((i,idx)=>setTimeout(()=>document.getElementById('mc'+i).classList.add('animate'),idx*120)),100);
+
+  const segs = data.segments;
+  const kms  = agregerParKm(segs);
+  const vmin = Math.min(...segs.map(s=>s.vitesse_kmh));
+  const vmax = Math.max(...segs.map(s=>s.vitesse_kmh));
+
+  // CARTE
+  if (leafletMap) { leafletMap.remove(); leafletMap = null; }
+  leafletMap = L.map('map', { zoomControl: true, attributionControl: false });
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(leafletMap);
+
+  const step = Math.max(1, Math.floor(segs.length / 600));
+  for (let i = 0; i < segs.length - step; i += step) {
+    const v = segs[i].vitesse_kmh;
+    const ratio = vmax===vmin ? 0.5 : (v-vmin)/(vmax-vmin);
+    const color = ratio>0.66 ? '#22c55e' : ratio>0.33 ? '#f59e0b' : '#ef4444';
+    L.polyline([[segs[i].lat,segs[i].lon],[segs[i+step].lat,segs[i+step].lon]],
+      { color, weight:3, opacity:0.9 }).addTo(leafletMap);
+  }
+
+  const iconDiv = (e) => L.divIcon({ html:`<div style="font-size:16px">${e}</div>`, className:'', iconAnchor:[8,8] });
+  L.marker([segs[0].lat, segs[0].lon], { icon: iconDiv('🟢') }).addTo(leafletMap);
+  L.marker([segs[segs.length-1].lat, segs[segs.length-1].lon], { icon: iconDiv('🏁') }).addTo(leafletMap);
+  leafletMap.fitBounds(L.latLngBounds(segs.map(s=>[s.lat,s.lon])), { padding:[12,12] });
+
+  // GRAPHIQUE
+  if (chartCombo) chartCombo.destroy();
+  chartCombo = new Chart(document.getElementById('chartCombo'), {
+    data: {
+      labels: kms.map(k=>k.km+' km'),
+      datasets: [
+        {
+          type: 'bar', label: 'Puissance (W)',
+          data: kms.map(k=>k.watts_moy),
+          backgroundColor: 'rgba(56,189,248,0.4)',
+          borderColor: 'rgba(56,189,248,0.7)',
+          borderWidth: 1, yAxisID: 'yW', order: 2,
+        },
+        {
+          type: 'line', label: 'Vitesse (km/h)',
+          data: kms.map(k=>k.vitesse_moy),
+          borderColor: '#c8f135', borderWidth: 2,
+          fill: false, pointRadius: 0, tension: 0.35,
+          yAxisID: 'yV', order: 1,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      animation: { duration: 500 },
+      interaction: { mode:'index', intersect:false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor:'#161b22', borderColor:'rgba(255,255,255,0.1)',
+          borderWidth:1, titleColor:'#8892a0', bodyColor:'#eef0f4', padding:10
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color:'#5a6272', font:{size:9}, maxTicksLimit:14 },
+          grid: { color:'rgba(255,255,255,0.04)' },
+          border: { color:'rgba(255,255,255,0.06)' }
+        },
+        yV: {
+          position:'left',
+          ticks: { color:'#c8f135', font:{size:9} },
+          grid: { color:'rgba(255,255,255,0.04)' },
+          border: { color:'rgba(255,255,255,0.06)' },
+          title: { display:true, text:'km/h', color:'#c8f135', font:{size:9} }
+        },
+        yW: {
+          position:'right',
+          ticks: { color:'#38bdf8', font:{size:9} },
+          grid: { display:false },
+          title: { display:true, text:'W', color:'#38bdf8', font:{size:9} }
+        }
+      }
+    }
+  });
+
+  // TABLEAU
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+  for (const k of kms) {
+    const ratio = vmax===vmin ? 0.5 : (k.vitesse_moy-vmin)/(vmax-vmin);
+    const col = ratio>0.66 ? '#22c55e' : ratio>0.33 ? '#f59e0b' : '#ef4444';
+    const mins = Math.floor(k.temps_s/60);
+    const secs = Math.round(k.temps_s%60);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="color:var(--text);font-weight:600">${k.km} km</td>
+      <td>${k.alt_moy} m</td>
+      <td style="color:${k.pente_moy>3?'#f59e0b':k.pente_moy<-3?'#38bdf8':'#5a6272'}">${k.pente_moy>0?'+':''}${k.pente_moy}%</td>
+      <td><span class="speed-badge"><span class="speed-dot" style="background:${col}"></span>${k.vitesse_moy} km/h</span></td>
+      <td style="color:#38bdf8">${k.watts_moy} W</td>
+      <td>${mins}min ${secs.toString().padStart(2,'0')}s</td>
+      <td style="color:${k.peloton?'#c8f135':'#5a6272'}">${k.peloton?'✓':'—'}</td>
+    `;
+    tbody.appendChild(tr);
+  }
+}
+</script>
+</body>
+</html>
