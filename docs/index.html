@@ -45,7 +45,6 @@
   .field-label span:first-child{font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted2)}
   .field-value{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;color:var(--accent)}
   .field-hint{font-size:10px;color:var(--muted);margin-top:4px;font-style:italic;line-height:1.4}
-  /* CdA legend */
   .cda-legend{margin-top:5px;display:grid;grid-template-columns:1fr 1fr;gap:3px 8px}
   .cda-legend-item{display:flex;align-items:center;gap:4px;font-size:9.5px;color:var(--muted);line-height:1.3}
   .cda-legend-item .cda-val{font-family:'Barlow Condensed',sans-serif;font-weight:700;color:var(--muted2);font-size:10px;flex-shrink:0}
@@ -64,13 +63,10 @@
   .btn-simulate{background:var(--accent);color:var(--bg);border:none;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:14px;letter-spacing:0.15em;text-transform:uppercase;padding:14px;cursor:pointer;transition:all 0.2s;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);display:flex;align-items:center;justify-content:center;gap:10px;margin:16px 18px 6px;width:calc(100% - 36px)}
   .btn-simulate:hover:not(:disabled){background:#fff;box-shadow:0 8px 24px rgba(200,241,53,0.2)}
   .btn-simulate:disabled{opacity:0.4;cursor:not-allowed}
-  /* Cold start hint */
   .cold-start-hint{text-align:center;font-size:10px;color:var(--muted);font-style:italic;padding:0 18px 14px;line-height:1.4;opacity:0.7}
   .cold-start-hint::before{content:'⏳ '}
   .spinner{width:13px;height:13px;border:2px solid rgba(0,0,0,0.3);border-top-color:var(--bg);border-radius:50%;animation:spin 0.7s linear infinite;display:none}
   @keyframes spin{to{transform:rotate(360deg)}}
-
-  /* ── RIGHT PANEL ── */
   .panel-right{display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
   .empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--muted)}
   .empty-icon{font-size:44px;opacity:0.3}
@@ -78,8 +74,6 @@
   .empty-sub{font-size:12px;color:var(--muted);opacity:0.6}
   .results{display:none;flex-direction:column;height:100%;overflow:hidden}
   .results.visible{display:flex}
-
-  /* Metrics row — 4 KPIs */
   .metrics-row{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border);flex-shrink:0}
   .metric-card{padding:16px 20px;border-right:1px solid var(--border);position:relative;overflow:hidden}
   .metric-card:last-child{border-right:none}
@@ -91,37 +85,14 @@
   .metric-label{font-size:10px;font-weight:500;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
   .metric-val{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:28px;line-height:1;color:var(--text);letter-spacing:-0.02em}
   .metric-val .unit{font-size:13px;font-weight:400;color:var(--muted2);margin-left:2px}
-
-  /* ── CONTENT AREA
-    Col 1 (gauche) | Col 2 (droite)
-    row 1 : Carte            | Graphique P/V (span rows 1+2)
-    row 2 : Profil alti      | (suite)
-    row 3 : Répartition      | Segment critique
-    row 4 : Segments full width
-  */
-  .content-area{
-    flex:1;
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    grid-template-rows:minmax(0,1.4fr) minmax(0,1fr) minmax(0,0.9fr) minmax(0,0.55fr);
-    gap:1px;
-    background:var(--border);
-    overflow:hidden;
-  }
+  .content-area{flex:1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:minmax(0,1.4fr) minmax(0,1fr) minmax(0,0.9fr) minmax(0,0.55fr);gap:1px;background:var(--border);overflow:hidden}
   .content-block{background:var(--bg);display:flex;flex-direction:column;overflow:hidden;padding:14px 16px}
-  /* Carte : col 1, row 1 */
-  .block-map{grid-column:1;grid-row:1}
-  /* Graphique P/V : col 2, rows 1+2 (pleine hauteur droite) */
+  .block-map{grid-column:1;grid-row:1;position:relative}
   .block-chart{grid-column:2;grid-row:1/3}
-  /* Profil alti : col 1, row 2 */
   .block-profile{grid-column:1;grid-row:2}
-  /* Répartition : col 1, row 3 */
   .block-repartition{grid-column:1;grid-row:3}
-  /* Critique : col 2, row 3 */
   .block-critique{grid-column:2;grid-row:3}
-  /* Segments : full width, row 4 */
   .block-segments{grid-column:1/-1;grid-row:4}
-
   .block-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;flex-shrink:0;display:flex;align-items:center;gap:8px}
   .legend{display:flex;gap:14px;margin-left:auto}
   .legend-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted2)}
@@ -131,27 +102,48 @@
   .leaflet-container{background:#0f1217 !important}
   .leaflet-tile{filter:brightness(0.7) saturate(0.4)}
   canvas{flex:1;min-height:0}
-
-  /* Profil altimétrique canvas */
   #chartProfile{flex:1;min-height:0}
 
-  /* Répartition profil */
+  /* ── Curseur synchronisé ── */
+  .cursor-marker-dot{
+    width:14px;height:14px;
+    background:var(--accent);
+    border-radius:50%;
+    border:2px solid #fff;
+    box-shadow:0 0 12px rgba(200,241,53,0.9),0 0 4px rgba(0,0,0,0.6);
+  }
+  /* Tooltip flottant positionné dans le bloc carte */
+  .cursor-tooltip{
+    position:absolute;top:38px;left:10px;
+    background:rgba(15,18,23,0.95);
+    border:1px solid rgba(200,241,53,0.25);
+    padding:9px 13px;
+    font-size:11px;
+    pointer-events:none;
+    z-index:500;
+    display:none;
+    white-space:nowrap;
+    box-shadow:0 4px 20px rgba(0,0,0,0.6);
+  }
+  .cursor-tooltip.visible{display:block}
+  .ct-row{display:flex;align-items:center;gap:8px;margin-bottom:4px;line-height:1}
+  .ct-row:last-child{margin-bottom:0}
+  .ct-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+  .ct-lbl{color:var(--muted);font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;min-width:56px}
+  .ct-val{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;color:var(--text)}
+
   .repartition-list{display:flex;flex-direction:column;gap:7px;flex:1;justify-content:center}
   .rep-row{display:flex;align-items:center;gap:8px;font-size:11px}
   .rep-label{color:var(--muted2);width:72px;flex-shrink:0}
   .rep-bar-wrap{flex:1;height:4px;background:var(--surface3);border-radius:2px;overflow:hidden}
   .rep-bar{height:100%;border-radius:2px;transition:width 0.8s ease}
   .rep-val{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;color:var(--text);min-width:76px;text-align:right}
-
-  /* Segment critique */
   .critique-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:1;align-content:center}
   .critique-item{background:var(--surface2);padding:9px 12px;border:1px solid var(--border)}
   .critique-item-label{font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
   .critique-item-val{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:18px;color:var(--text)}
   .critique-item-val .unit{font-size:11px;font-weight:400;color:var(--muted2);margin-left:2px}
   .critique-item.highlight .critique-item-val{color:var(--warn)}
-
-  /* Table segments */
   .table-wrap{overflow-y:auto;flex:1}
   .table-wrap::-webkit-scrollbar{width:3px}
   .table-wrap::-webkit-scrollbar-thumb{background:var(--surface3)}
@@ -164,8 +156,6 @@
   .speed-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
   .toast{position:fixed;bottom:20px;right:20px;background:var(--danger);color:#fff;padding:10px 18px;font-size:13px;font-weight:500;display:none;z-index:999;max-width:300px}
   .toast.visible{display:block}
-
-  /* Dropdown segments toggle */
   .seg-toggle{background:none;border:1px solid var(--border);color:var(--muted2);font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;padding:3px 8px;cursor:pointer;transition:all 0.15s;margin-left:auto}
   .seg-toggle:hover{border-color:var(--accent);color:var(--accent)}
 </style>
@@ -196,7 +186,6 @@
       <div class="field">
         <div class="field-label"><span>Aérodynamisme CdA</span><span class="field-value" id="cdaVal">0.26</span></div>
         <input type="range" id="cda" min="0.20" max="0.50" value="0.26" step="0.01" oninput="document.getElementById('cdaVal').textContent=parseFloat(this.value).toFixed(2)">
-        <!-- ↓ Légende CdA ajoutée -->
         <div class="cda-legend">
           <div class="cda-legend-item"><span class="cda-val">0.24</span>CLM Performance</div>
           <div class="cda-legend-item"><span class="cda-val">0.27</span>CLM Sportif</div>
@@ -241,7 +230,6 @@
       <div class="spinner" id="spinner"></div>
       <span id="btnText">Importe un GPX</span>
     </button>
-    <!-- ↓ Hint cold start ajouté -->
     <div class="cold-start-hint">Le premier chargement peut être plus long</div>
   </div>
 
@@ -252,23 +240,28 @@
       <div class="empty-sub">Importe un fichier GPX et lance la simulation</div>
     </div>
     <div class="results" id="results">
-      <!-- KPIs -->
       <div class="metrics-row">
         <div class="metric-card" id="mc0"><div class="metric-label">⏱ Temps estimé</div><div class="metric-val" id="mTemps">—</div></div>
         <div class="metric-card" id="mc1"><div class="metric-label">⚡ Vitesse moyenne</div><div class="metric-val" id="mVitesse">—</div></div>
         <div class="metric-card" id="mc2"><div class="metric-label">📏 Distance</div><div class="metric-val" id="mDist">—</div></div>
         <div class="metric-card" id="mc3"><div class="metric-label">⛰ Dénivelé +</div><div class="metric-val" id="mDeniv">—</div></div>
       </div>
-
       <div class="content-area">
 
-        <!-- Col 1 Row 1 : Carte -->
+        <!-- Carte -->
         <div class="content-block block-map">
           <div class="block-title">🗺 Carte GPS</div>
           <div id="map"></div>
+          <div class="cursor-tooltip" id="cursorTooltip">
+            <div class="ct-row"><div class="ct-dot" style="background:var(--muted2)"></div><span class="ct-lbl">Distance</span><span class="ct-val" id="ttDist">—</span></div>
+            <div class="ct-row"><div class="ct-dot" style="background:var(--accent2)"></div><span class="ct-lbl">Altitude</span><span class="ct-val" id="ttAlt">—</span></div>
+            <div class="ct-row"><div class="ct-dot" style="background:var(--accent)"></div><span class="ct-lbl">Vitesse</span><span class="ct-val" id="ttVitesse">—</span></div>
+            <div class="ct-row"><div class="ct-dot" style="background:#38bdf8"></div><span class="ct-lbl">Puissance</span><span class="ct-val" id="ttWatts">—</span></div>
+            <div class="ct-row"><div class="ct-dot" style="background:var(--warn)"></div><span class="ct-lbl">Pente</span><span class="ct-val" id="ttPente">—</span></div>
+          </div>
         </div>
 
-        <!-- Col 2 Row 1+2 : Graphique Puissance / Vitesse -->
+        <!-- Graphique combo : col 2 rows 1+2 -->
         <div class="content-block block-chart">
           <div class="block-title">Vitesse &amp; Puissance
             <div class="legend">
@@ -279,73 +272,40 @@
           <canvas id="chartCombo"></canvas>
         </div>
 
-        <!-- Col 1 Row 2 : Profil altimétrique -->
+        <!-- Profil altimétrique -->
         <div class="content-block block-profile">
           <div class="block-title">📈 Profil altimétrique</div>
           <canvas id="chartProfile"></canvas>
         </div>
 
-        <!-- Col 1 Row 3 : Répartition du profil -->
+        <!-- Répartition -->
         <div class="content-block block-repartition">
           <div class="block-title">📊 Répartition du profil</div>
-          <div class="repartition-list" id="repartitionList">
-            <div class="rep-row">
-              <span class="rep-label">Montées</span>
-              <div class="rep-bar-wrap"><div class="rep-bar" id="barMontees" style="width:0%;background:var(--warn)"></div></div>
-              <span class="rep-val" id="valMontees">—</span>
-            </div>
-            <div class="rep-row">
-              <span class="rep-label">Descentes</span>
-              <div class="rep-bar-wrap"><div class="rep-bar" id="barDescentes" style="width:0%;background:var(--accent2)"></div></div>
-              <span class="rep-val" id="valDescentes">—</span>
-            </div>
-            <div class="rep-row">
-              <span class="rep-label">Plat</span>
-              <div class="rep-bar-wrap"><div class="rep-bar" id="barPlat" style="width:0%;background:var(--muted)"></div></div>
-              <span class="rep-val" id="valPlat">—</span>
-            </div>
+          <div class="repartition-list">
+            <div class="rep-row"><span class="rep-label">Montées</span><div class="rep-bar-wrap"><div class="rep-bar" id="barMontees" style="width:0%;background:var(--warn)"></div></div><span class="rep-val" id="valMontees">—</span></div>
+            <div class="rep-row"><span class="rep-label">Descentes</span><div class="rep-bar-wrap"><div class="rep-bar" id="barDescentes" style="width:0%;background:var(--accent2)"></div></div><span class="rep-val" id="valDescentes">—</span></div>
+            <div class="rep-row"><span class="rep-label">Plat</span><div class="rep-bar-wrap"><div class="rep-bar" id="barPlat" style="width:0%;background:var(--muted)"></div></div><span class="rep-val" id="valPlat">—</span></div>
           </div>
         </div>
 
-        <!-- Col 2 Row 2 : Segment critique (pente max) -->
+        <!-- Critique -->
         <div class="content-block block-critique">
           <div class="block-title">⚠️ Vitesse minimum</div>
           <div class="critique-grid">
-            <div class="critique-item highlight">
-              <div class="critique-item-label">Segment — pente la plus élevée</div>
-              <div class="critique-item-val" id="critPente">—<span class="unit">%</span></div>
-            </div>
-            <div class="critique-item">
-              <div class="critique-item-label">Vitesse</div>
-              <div class="critique-item-val" id="critVitesse">—<span class="unit">km/h</span></div>
-            </div>
-            <div class="critique-item">
-              <div class="critique-item-label">Puissance nécessaire</div>
-              <div class="critique-item-val" id="critWatts">—<span class="unit">W</span></div>
-            </div>
-            <div class="critique-item">
-              <div class="critique-item-label">Vitesse minimum globale</div>
-              <div class="critique-item-val" id="critVmin">—<span class="unit">km/h</span></div>
-            </div>
+            <div class="critique-item highlight"><div class="critique-item-label">Segment — pente la plus élevée</div><div class="critique-item-val" id="critPente">—<span class="unit">%</span></div></div>
+            <div class="critique-item"><div class="critique-item-label">Vitesse</div><div class="critique-item-val" id="critVitesse">—<span class="unit">km/h</span></div></div>
+            <div class="critique-item"><div class="critique-item-label">Puissance nécessaire</div><div class="critique-item-val" id="critWatts">—<span class="unit">W</span></div></div>
+            <div class="critique-item"><div class="critique-item-label">Vitesse minimum globale</div><div class="critique-item-val" id="critVmin">—<span class="unit">km/h</span></div></div>
           </div>
         </div>
 
-        <!-- Col 3 Row 2 : Table segments (menu déroulant) -->
+        <!-- Segments -->
         <div class="content-block block-segments">
-          <div class="block-title">
-            📋 Segments — 1 km / 1 km
-            <button class="seg-toggle" id="segToggle" onclick="toggleSegments()">▼ Afficher</button>
-          </div>
+          <div class="block-title">📋 Segments — 1 km / 1 km<button class="seg-toggle" id="segToggle" onclick="toggleSegments()">▼ Afficher</button></div>
           <div class="table-wrap" id="tableWrap" style="display:none">
-            <table>
-              <thead><tr><th>Km</th><th>Alt. moy</th><th>Pente moy</th><th>Vitesse moy</th><th>Puissance moy</th><th>Temps</th><th>Peloton</th></tr></thead>
-              <tbody id="tableBody"></tbody>
-            </table>
+            <table><thead><tr><th>Km</th><th>Alt. moy</th><th>Pente moy</th><th>Vitesse moy</th><th>Puissance moy</th><th>Temps</th><th>Peloton</th></tr></thead><tbody id="tableBody"></tbody></table>
           </div>
-          <!-- État fermé : mini résumé -->
-          <div id="segClosed" style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px;font-style:italic;">
-            Cliquer sur Afficher pour voir le détail kilomètre par kilomètre
-          </div>
+          <div id="segClosed" style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px;font-style:italic;">Cliquer sur Afficher pour voir le détail kilomètre par kilomètre</div>
         </div>
 
       </div>
@@ -353,11 +313,49 @@
   </div>
 </div>
 <div class="toast" id="toast"></div>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 const API="https://allure-api-1s16.onrender.com";
 let pelotonOn=false,chartCombo=null,chartProfile=null,leafletMap=null,segVisible=false;
+let cursorMarker=null;
+let allSegs=[];
+let altSampledSegs=[];  // segments sous-échantillonnés alignés sur chartProfile
+let kmSampledSegs=[];   // segments agrégés par km alignés sur chartCombo
+
+// ── Plugin Chart.js : ligne verticale crosshair ──
+const crosshairPlugin={
+  id:'crosshair',
+  afterDraw(chart){
+    if(chart._crosshairX==null) return;
+    const {ctx,chartArea:{top,bottom}}=chart;
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(chart._crosshairX,top);
+    ctx.lineTo(chart._crosshairX,bottom);
+    ctx.strokeStyle='rgba(200,241,53,0.55)';
+    ctx.lineWidth=1;
+    ctx.setLineDash([3,4]);
+    ctx.stroke();
+    // Petit cercle sur la courbe de vitesse (dataset index 0 pour profile, 1 pour combo)
+    const dsIdx = chart.config.type==='line' ? 0 : 1;
+    const meta=chart.getDatasetMeta(dsIdx);
+    if(meta._crosshairPtIdx!=null && meta.data[meta._crosshairPtIdx]){
+      const pt=meta.data[meta._crosshairPtIdx];
+      ctx.beginPath();
+      ctx.arc(pt.x,pt.y,4,0,Math.PI*2);
+      ctx.fillStyle='#c8f135';
+      ctx.fill();
+      ctx.strokeStyle='#fff';
+      ctx.lineWidth=1.5;
+      ctx.setLineDash([]);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+};
+Chart.register(crosshairPlugin);
 
 function updateDir(val){const dirs=["N","NE","E","SE","S","SO","O","NO"];document.getElementById('dirVal').textContent=val+'° '+dirs[Math.round(val/45)%8]}
 function togglePeloton(){pelotonOn=!pelotonOn;document.getElementById('pelotonToggle').classList.toggle('on',pelotonOn);document.getElementById('pelotonExtra').classList.toggle('visible',pelotonOn)}
@@ -368,11 +366,27 @@ function toggleSegments(){
   document.getElementById('segToggle').textContent=segVisible?'▲ Masquer':'▼ Afficher';
 }
 
-document.getElementById('gpxFile').addEventListener('change',function(){if(this.files[0]){const fn=document.getElementById('fileName');fn.textContent='✓ '+this.files[0].name;fn.style.display='block';document.getElementById('btnSimulate').disabled=false;document.getElementById('btnText').textContent='Simuler';setStatus('ready','Prêt')}});
+document.getElementById('gpxFile').addEventListener('change',function(){
+  if(this.files[0]){
+    const fn=document.getElementById('fileName');
+    fn.textContent='✓ '+this.files[0].name;fn.style.display='block';
+    document.getElementById('btnSimulate').disabled=false;
+    document.getElementById('btnText').textContent='Simuler';
+    setStatus('ready','Prêt');
+  }
+});
 const zone=document.getElementById('uploadZone');
 zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('dragover')});
 zone.addEventListener('dragleave',()=>zone.classList.remove('dragover'));
-zone.addEventListener('drop',e=>{e.preventDefault();zone.classList.remove('dragover');const file=e.dataTransfer.files[0];if(file&&file.name.endsWith('.gpx')){const dt=new DataTransfer();dt.items.add(file);document.getElementById('gpxFile').files=dt.files;document.getElementById('gpxFile').dispatchEvent(new Event('change'))}});
+zone.addEventListener('drop',e=>{
+  e.preventDefault();zone.classList.remove('dragover');
+  const file=e.dataTransfer.files[0];
+  if(file&&file.name.endsWith('.gpx')){
+    const dt=new DataTransfer();dt.items.add(file);
+    document.getElementById('gpxFile').files=dt.files;
+    document.getElementById('gpxFile').dispatchEvent(new Event('change'));
+  }
+});
 function setStatus(type,text){document.getElementById('statusPill').className='status-pill '+type;document.getElementById('statusText').textContent=text}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('visible');setTimeout(()=>t.classList.remove('visible'),4000)}
 
@@ -411,10 +425,107 @@ function agregerParKm(segs){
     watts_moy:Math.round(arr.reduce((a,s)=>a+s.watts,0)/arr.length),
     temps_s:arr.reduce((a,s)=>a+s.temps_seg_s,0),
     peloton:arr.some(s=>s.peloton),
+    // position représentative pour la carte
+    lat:arr[Math.floor(arr.length/2)].lat,
+    lon:arr[Math.floor(arr.length/2)].lon,
   }));
 }
 
-function fmtTemps(s){const m=Math.floor(s/60);const ss=Math.round(s%60);return m+'min '+ss.toString().padStart(2,'0')+'s'}
+// ── Curseur synchronisé ──
+// source : 'profile' | 'combo'
+// ptIdx  : index du point dans le dataset du graphique source
+function syncCursor(ptIdx, source){
+  if(!allSegs.length) return;
+
+  let seg;           // segment brut à afficher
+  let profileIdx;    // index dans altSampledSegs → chartProfile
+  let comboIdx;      // index dans kmSampledSegs  → chartCombo
+
+  if(source==='profile'){
+    profileIdx = Math.min(ptIdx, altSampledSegs.length-1);
+    seg = altSampledSegs[profileIdx];
+    // trouver l'index combo le plus proche en km
+    const targetKm = seg.distance_cumulee_km;
+    comboIdx = kmSampledSegs.reduce((best,k,i)=>
+      Math.abs(k.km-targetKm)<Math.abs(kmSampledSegs[best].km-targetKm)?i:best, 0);
+  } else {
+    comboIdx = Math.min(ptIdx, kmSampledSegs.length-1);
+    const km = kmSampledSegs[comboIdx];
+    // segment brut le plus proche en km
+    seg = allSegs.reduce((best,s)=>
+      Math.abs(s.distance_cumulee_km-km.km)<Math.abs(best.distance_cumulee_km-km.km)?s:best,
+      allSegs[0]);
+    // index profile le plus proche
+    profileIdx = altSampledSegs.reduce((best,s,i)=>
+      Math.abs(s.distance_cumulee_km-seg.distance_cumulee_km)<Math.abs(altSampledSegs[best].distance_cumulee_km-seg.distance_cumulee_km)?i:best, 0);
+  }
+
+  // 1. Crosshair + point sur chartProfile
+  if(chartProfile){
+    const meta=chartProfile.getDatasetMeta(0);
+    if(meta.data[profileIdx]){
+      chartProfile._crosshairX=meta.data[profileIdx].x;
+      chartProfile.getDatasetMeta(0)._crosshairPtIdx=profileIdx;
+      chartProfile.draw();
+    }
+  }
+
+  // 2. Crosshair + point sur chartCombo (courbe vitesse = dataset 1)
+  if(chartCombo){
+    const meta=chartCombo.getDatasetMeta(1);
+    if(meta.data[comboIdx]){
+      chartCombo._crosshairX=meta.data[comboIdx].x;
+      chartCombo.getDatasetMeta(1)._crosshairPtIdx=comboIdx;
+      chartCombo.draw();
+    }
+  }
+
+  // 3. Marqueur Leaflet
+  if(leafletMap && seg){
+    const latlng=[seg.lat,seg.lon];
+    if(!cursorMarker){
+      const icon=L.divIcon({html:'<div class="cursor-marker-dot"></div>',className:'',iconSize:[14,14],iconAnchor:[7,7]});
+      cursorMarker=L.marker(latlng,{icon,zIndexOffset:1000,interactive:false}).addTo(leafletMap);
+    } else {
+      cursorMarker.setLatLng(latlng);
+    }
+  }
+
+  // 4. Tooltip dans le bloc carte
+  if(seg){
+    document.getElementById('ttDist').textContent=seg.distance_cumulee_km.toFixed(1)+' km';
+    document.getElementById('ttAlt').textContent=seg.altitude_m+' m';
+    document.getElementById('ttVitesse').textContent=seg.vitesse_kmh+' km/h';
+    document.getElementById('ttWatts').textContent=seg.watts+' W';
+    const p=seg.pente_pct;
+    document.getElementById('ttPente').textContent=(p>0?'+':'')+p+'%';
+    document.getElementById('cursorTooltip').classList.add('visible');
+  }
+}
+
+function clearCursor(){
+  if(chartProfile){chartProfile._crosshairX=null;if(chartProfile.getDatasetMeta(0))chartProfile.getDatasetMeta(0)._crosshairPtIdx=null;chartProfile.draw();}
+  if(chartCombo){chartCombo._crosshairX=null;if(chartCombo.getDatasetMeta(1))chartCombo.getDatasetMeta(1)._crosshairPtIdx=null;chartCombo.draw();}
+  if(cursorMarker){leafletMap.removeLayer(cursorMarker);cursorMarker=null;}
+  document.getElementById('cursorTooltip').classList.remove('visible');
+}
+
+function attachCursor(canvas, source){
+  canvas.style.cursor='crosshair';
+  canvas.addEventListener('mousemove',e=>{
+    const rect=canvas.getBoundingClientRect();
+    const mouseX=e.clientX-rect.left;
+    const chart=source==='profile'?chartProfile:chartCombo;
+    if(!chart) return;
+    const dsIdx=source==='profile'?0:1;
+    const meta=chart.getDatasetMeta(dsIdx);
+    if(!meta.data.length) return;
+    let closest=0,minDist=Infinity;
+    meta.data.forEach((pt,i)=>{const d=Math.abs(pt.x-mouseX);if(d<minDist){minDist=d;closest=i;}});
+    syncCursor(closest, source);
+  });
+  canvas.addEventListener('mouseleave', clearCursor);
+}
 
 function afficherResultats(data){
   document.getElementById('emptyState').style.display='none';
@@ -425,13 +536,15 @@ function afficherResultats(data){
   document.getElementById('mDeniv').innerHTML=data.denivele_pos_m+'<span class="unit">m</span>';
   setTimeout(()=>[0,1,2,3].forEach((i,idx)=>setTimeout(()=>document.getElementById('mc'+i).classList.add('animate'),idx*120)),100);
 
-  const segs=data.segments;
+  allSegs=data.segments;
+  const segs=allSegs;
   const kms=agregerParKm(segs);
+  kmSampledSegs=kms;
   const vmin=Math.min(...segs.map(s=>s.vitesse_kmh));
   const vmax=Math.max(...segs.map(s=>s.vitesse_kmh));
 
   // ── Carte ──
-  if(leafletMap){leafletMap.remove();leafletMap=null}
+  if(leafletMap){leafletMap.remove();leafletMap=null;cursorMarker=null;}
   leafletMap=L.map('map',{zoomControl:true,attributionControl:false});
   L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(leafletMap);
   const step=Math.max(1,Math.floor(segs.length/600));
@@ -449,8 +562,14 @@ function afficherResultats(data){
   if(chartProfile)chartProfile.destroy();
   const altStep=Math.max(1,Math.floor(segs.length/300));
   const altLabels=[];const altData=[];
-  for(let i=0;i<segs.length;i+=altStep){altLabels.push(segs[i].distance_cumulee_km.toFixed(1)+' km');altData.push(segs[i].altitude_m)}
-  chartProfile=new Chart(document.getElementById('chartProfile'),{
+  altSampledSegs=[];
+  for(let i=0;i<segs.length;i+=altStep){
+    altLabels.push(segs[i].distance_cumulee_km.toFixed(1)+' km');
+    altData.push(segs[i].altitude_m);
+    altSampledSegs.push(segs[i]);
+  }
+  const profileCanvas=document.getElementById('chartProfile');
+  chartProfile=new Chart(profileCanvas,{
     type:'line',
     data:{labels:altLabels,datasets:[{
       data:altData,borderColor:'rgba(56,189,248,0.8)',borderWidth:1.5,fill:true,
@@ -458,21 +577,19 @@ function afficherResultats(data){
     }]},
     options:{
       responsive:true,maintainAspectRatio:false,animation:{duration:400},
-      plugins:{legend:{display:false},tooltip:{
-        backgroundColor:'#161b22',borderColor:'rgba(255,255,255,0.1)',borderWidth:1,
-        titleColor:'#8892a0',bodyColor:'#eef0f4',padding:8,
-        callbacks:{label:ctx=>`${ctx.parsed.y} m`}
-      }},
+      plugins:{legend:{display:false},tooltip:{enabled:false}},
       scales:{
         x:{ticks:{color:'#5a6272',font:{size:8},maxTicksLimit:8},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.06)'}},
         y:{ticks:{color:'#38bdf8',font:{size:8}},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.06)'},title:{display:true,text:'m',color:'#38bdf8',font:{size:8}}}
       }
     }
   });
+  attachCursor(profileCanvas,'profile');
 
   // ── Graphique Puissance / Vitesse ──
   if(chartCombo)chartCombo.destroy();
-  chartCombo=new Chart(document.getElementById('chartCombo'),{
+  const comboCanvas=document.getElementById('chartCombo');
+  chartCombo=new Chart(comboCanvas,{
     data:{
       labels:kms.map(k=>k.km+' km'),
       datasets:[
@@ -482,8 +599,7 @@ function afficherResultats(data){
     },
     options:{
       responsive:true,maintainAspectRatio:false,animation:{duration:500},
-      interaction:{mode:'index',intersect:false},
-      plugins:{legend:{display:false},tooltip:{backgroundColor:'#161b22',borderColor:'rgba(255,255,255,0.1)',borderWidth:1,titleColor:'#8892a0',bodyColor:'#eef0f4',padding:10}},
+      plugins:{legend:{display:false},tooltip:{enabled:false}},
       scales:{
         x:{ticks:{color:'#5a6272',font:{size:9},maxTicksLimit:14},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.06)'}},
         yV:{position:'left',ticks:{color:'#c8f135',font:{size:9}},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.06)'},title:{display:true,text:'km/h',color:'#c8f135',font:{size:9}}},
@@ -491,6 +607,7 @@ function afficherResultats(data){
       }
     }
   });
+  attachCursor(comboCanvas,'combo');
 
   // ── Répartition du profil ──
   const tTotal=data.temps_total_s;
