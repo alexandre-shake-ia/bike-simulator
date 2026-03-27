@@ -16,7 +16,7 @@ def lire_gpx(chemin_fichier):
     print(f"✅ GPX chargé : {len(points)} points trouvés")
     return points
 
-def lisser_altitudes(points, fenetre=5):
+def lisser_altitudes(points, fenetre=12):
     altitudes = [p.elevation if p.elevation is not None else 0 for p in points]
     lissees = []
     for i in range(len(altitudes)):
@@ -40,12 +40,12 @@ def construire_segments(points, altitudes_lissees):
         p1, p2 = points[i], points[i + 1]
         dist = p1.distance_2d(p2)
         
-        if dist <= 0.5:
+        if dist <= 2:
             continue
         
         dz = altitudes_lissees[i + 1] - altitudes_lissees[i]
         pente = (dz / dist) * 100
-        pente = max(min(pente, 30), -30)  # Écrêtage pentes aberrantes
+        pente = round((dz / dist) * 100, 2) # Écrêtage pentes aberrantes
         
         dist_cumulee += dist
         
