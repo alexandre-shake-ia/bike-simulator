@@ -6,3 +6,4 @@ gpxpy
 scipy
 pandas
 python-dotenv
+slowapi
