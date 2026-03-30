@@ -4,175 +4,296 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ALLURE — Simulateur Cycliste</title>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
+  /* ── Design System : The Technical Zenith ── */
   :root {
-    --bg:#080a0d;--surface:#0f1217;--surface2:#161b22;--surface3:#1c2230;
-    --border:rgba(255,255,255,0.07);--accent:#c8f135;--accent2:#38bdf8;
-    --text:#eef0f4;--muted:#5a6272;--muted2:#8892a0;
-    --success:#22c55e;--warn:#f59e0b;--danger:#ef4444;
+    --surface:#f6fafe;
+    --surface-low:#f0f4f8;
+    --surface-lowest:#ffffff;
+    --surface-container:#eaeef2;
+    --surface-high:#e4e9ed;
+    --primary:#002542;
+    --primary-container:#1b3b5a;
+    --secondary:#466270;
+    --tertiary:#00263f;
+    --on-surface:#171c1f;
+    --on-surface-variant:#43474d;
+    --on-secondary:#8eaabf;
+    --outline-variant:rgba(195,198,206,0.18);
+    --error:#ba1a1a;
+    --success:#1a6b3a;
+    --warn:#7a4f00;
+    --warn-bg:#fff3cd;
+    --shadow:0 20px 40px rgba(0,37,66,0.06);
+    --shadow-sm:0 4px 12px rgba(0,37,66,0.08);
   }
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%;overflow:hidden}
-  body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font-size:14px;display:flex;flex-direction:column}
-  .topbar{display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:52px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;position:relative;z-index:10}
-  .topbar::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,var(--accent),transparent 40%);opacity:0.5}
-  .logo{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:20px;letter-spacing:0.18em;text-transform:uppercase;display:flex;align-items:center;gap:10px}
-  .logo-dot{width:7px;height:7px;background:var(--accent);border-radius:50%;animation:blink 2.5s ease-in-out infinite}
-  @keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
-  .status-pill{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted2)}
-  .status-pill .dot{width:6px;height:6px;border-radius:50%;background:var(--muted)}
-  .status-pill.ready .dot{background:var(--success);box-shadow:0 0 6px var(--success)}
-  .status-pill.loading .dot{background:var(--warn);animation:blink 0.8s infinite}
-  .status-pill.error .dot{background:var(--danger)}
+  body{background:var(--surface);color:var(--on-surface);font-family:'Manrope',sans-serif;font-size:14px;display:flex;flex-direction:column}
+
+  /* ── TOPBAR ── */
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 28px;height:56px;
+    background:rgba(246,250,254,0.85);
+    backdrop-filter:blur(16px);
+    flex-shrink:0;position:relative;z-index:50;
+    box-shadow:0 1px 0 rgba(0,37,66,0.06);
+  }
+  .logo{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:18px;letter-spacing:-0.02em;color:var(--primary);display:flex;align-items:center;gap:10px}
+  .logo-badge{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#002542 0%,#1b3b5a 100%);display:flex;align-items:center;justify-content:center}
+  .logo-badge svg{width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round}
+  .logo-sub{font-family:'Space Grotesk',sans-serif;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--secondary);font-weight:500}
+  .status-pill{display:flex;align-items:center;gap:7px;font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--secondary);background:var(--surface-low);padding:6px 12px;border-radius:999px}
+  .status-pill .dot{width:6px;height:6px;border-radius:50%;background:var(--surface-high)}
+  .status-pill.ready .dot{background:#16a34a;box-shadow:0 0 0 3px rgba(22,163,74,0.15)}
+  .status-pill.loading .dot{background:#d97706;animation:blink 0.8s infinite}
+  .status-pill.error .dot{background:var(--error)}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+
+  /* ── WORKSPACE ── */
   .workspace{display:grid;grid-template-columns:300px 1fr;flex:1;overflow:hidden}
-  .panel-left{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden}
+
+  /* ── LEFT PANEL ── */
+  .panel-left{
+    background:var(--surface-low);
+    display:flex;flex-direction:column;
+    overflow-y:auto;overflow-x:hidden;
+  }
   .panel-left::-webkit-scrollbar{width:3px}
-  .panel-left::-webkit-scrollbar-thumb{background:var(--surface3)}
-  .panel-right{display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;background:var(--bg)}
-  .panel-right::-webkit-scrollbar{width:3px}
-  .panel-right::-webkit-scrollbar-thumb{background:var(--surface3)}
-  .panel-section{padding:18px 18px 0}
-  .section-header{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
-  .section-header-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted2)}
-  .upload-zone{border:1px dashed rgba(200,241,53,0.25);background:rgba(200,241,53,0.02);padding:20px 14px;text-align:center;cursor:pointer;transition:all 0.2s;position:relative;margin-bottom:4px}
-  .upload-zone:hover,.upload-zone.dragover{border-color:rgba(200,241,53,0.6);background:rgba(200,241,53,0.05)}
+  .panel-left::-webkit-scrollbar-thumb{background:var(--surface-high);border-radius:2px}
+
+  .panel-section{padding:20px 16px 0}
+  .section-header{display:flex;align-items:center;gap:8px;margin-bottom:14px;padding:10px 12px;background:var(--primary);border-radius:10px}
+  .section-icon{width:26px;height:26px;border-radius:7px;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+  .section-header-label{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:#fff}
+
+  /* Upload zone */
+  .upload-zone{
+    background:var(--surface-lowest);border-radius:12px;
+    padding:20px 16px;text-align:center;cursor:pointer;
+    transition:all 0.2s;position:relative;margin-bottom:4px;
+    box-shadow:var(--shadow-sm);
+  }
+  .upload-zone:hover,.upload-zone.dragover{background:#e8f0f8;box-shadow:0 0 0 2px var(--primary)}
   .upload-zone input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer}
-  .upload-icon{font-size:22px;margin-bottom:6px}
-  .upload-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:3px}
-  .upload-hint{font-size:11px;color:var(--muted)}
-  .file-name{font-size:11px;color:var(--accent);margin-top:6px;font-weight:500;display:none}
-  .field{margin-bottom:12px}
-  .field-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
-  .field-label span:first-child{font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted2)}
-  .field-value{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;color:var(--accent)}
-  .field-hint{font-size:10px;color:var(--muted);margin-top:4px;font-style:italic;line-height:1.4}
-  .cda-legend{margin-top:5px;display:grid;grid-template-columns:1fr 1fr;gap:3px 8px}
-  .cda-legend-item{display:flex;align-items:center;gap:4px;font-size:9.5px;color:var(--muted);line-height:1.3}
-  .cda-legend-item .cda-val{font-family:'Barlow Condensed',sans-serif;font-weight:700;color:var(--muted2);font-size:10px;flex-shrink:0}
-  input[type="range"]{width:100%;height:3px;appearance:none;background:var(--surface3);outline:none;cursor:pointer}
-  input[type="range"]::-webkit-slider-thumb{appearance:none;width:13px;height:13px;background:var(--accent);border-radius:50%;cursor:pointer;box-shadow:0 0 8px rgba(200,241,53,0.4)}
-  .number-input{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:16px;padding:9px 12px;outline:none;transition:border-color 0.2s}
-  .number-input:focus{border-color:rgba(200,241,53,0.4)}
-  .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);margin-bottom:12px}
-  .toggle-label{font-size:11px;font-weight:500;color:var(--muted2);text-transform:uppercase;letter-spacing:0.08em}
-  .toggle{width:34px;height:18px;background:var(--surface3);border-radius:9px;cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0}
-  .toggle.on{background:var(--accent)}
-  .toggle::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;background:var(--bg);border-radius:50%;transition:transform 0.2s}
+  .upload-icon{font-size:20px;margin-bottom:8px;opacity:0.5}
+  .upload-label{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--primary);display:block;margin-bottom:3px}
+  .upload-hint{font-size:11px;color:var(--secondary)}
+  .file-name{font-size:11px;color:var(--primary);margin-top:8px;font-weight:600;display:none;background:var(--surface-low);padding:4px 8px;border-radius:6px}
+
+  /* Fields */
+  .field{margin-bottom:14px}
+  .field-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .field-label span:first-child{font-size:11px;font-weight:500;letter-spacing:0.04em;color:var(--on-surface-variant)}
+  .field-value{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px;color:var(--primary)}
+  .field-hint{font-size:10px;color:var(--secondary);margin-top:5px;line-height:1.5}
+
+  /* CdA legend */
+  .cda-legend{margin-top:6px;display:grid;grid-template-columns:1fr 1fr;gap:3px 8px}
+  .cda-legend-item{display:flex;align-items:center;gap:5px;font-size:9.5px;color:var(--on-surface-variant);line-height:1.4}
+  .cda-legend-item .cda-val{font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--primary);font-size:10px;flex-shrink:0}
+
+  /* Range inputs */
+  input[type="range"]{width:100%;height:3px;appearance:none;background:var(--surface-container);outline:none;cursor:pointer;border-radius:2px}
+  input[type="range"]::-webkit-slider-thumb{appearance:none;width:14px;height:14px;background:var(--primary);border-radius:50%;cursor:pointer;box-shadow:0 2px 6px rgba(0,37,66,0.3)}
+
+  /* Number input */
+  .number-input{
+    width:100%;background:var(--surface-lowest);
+    border:none;border-bottom:2px solid var(--surface-high);
+    color:var(--on-surface);font-family:'Space Grotesk',sans-serif;
+    font-weight:700;font-size:24px;padding:8px 0;
+    outline:none;transition:border-color 0.2s;border-radius:0;
+  }
+  .number-input:focus{border-bottom-color:var(--primary)}
+
+  /* Toggle */
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--surface-lowest);border-radius:10px;margin-bottom:12px;box-shadow:var(--shadow-sm)}
+  .toggle-label{font-size:11px;font-weight:500;color:var(--on-surface-variant)}
+  .toggle{width:36px;height:20px;background:var(--surface-high);border-radius:10px;cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0}
+  .toggle.on{background:var(--primary)}
+  .toggle::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;background:#fff;border-radius:50%;transition:transform 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.15)}
   .toggle.on::after{transform:translateX(16px)}
   .peloton-extra{display:none}
   .peloton-extra.visible{display:block}
-  .btn-simulate{background:var(--accent);color:var(--bg);border:none;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:14px;letter-spacing:0.15em;text-transform:uppercase;padding:14px;cursor:pointer;transition:all 0.2s;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);display:flex;align-items:center;justify-content:center;gap:10px;margin:16px 18px 6px;width:calc(100% - 36px)}
-  .btn-simulate:hover:not(:disabled){background:#fff;box-shadow:0 8px 24px rgba(200,241,53,0.2)}
-  .btn-simulate:disabled{opacity:0.4;cursor:not-allowed}
-  .cold-start-hint{text-align:center;font-size:10px;color:var(--muted);font-style:italic;padding:0 18px 14px;line-height:1.4;opacity:0.7}
-  .cold-start-hint::before{content:'⏳ '}
-  .spinner{width:13px;height:13px;border:2px solid rgba(0,0,0,0.3);border-top-color:var(--bg);border-radius:50%;animation:spin 0.7s linear infinite;display:none}
+
+  /* Simulate button */
+  .btn-simulate{
+    background:linear-gradient(135deg,#002542 0%,#1b3b5a 100%);
+    color:#fff;border:none;
+    font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:12px;
+    letter-spacing:0.14em;text-transform:uppercase;
+    padding:14px;cursor:pointer;
+    transition:all 0.2s;border-radius:12px;
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    margin:18px 16px 6px;width:calc(100% - 32px);
+    box-shadow:0 4px 16px rgba(0,37,66,0.25);
+  }
+  .btn-simulate:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,37,66,0.3)}
+  .btn-simulate:disabled{opacity:0.4;cursor:not-allowed;transform:none}
+  .cold-start-hint{text-align:center;font-size:10px;color:var(--secondary);padding:0 16px 16px;line-height:1.5;opacity:0.8}
+  .spinner{width:13px;height:13px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;display:none}
   @keyframes spin{to{transform:rotate(360deg)}}
-  .empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--muted);min-height:400px}
-  .empty-icon{font-size:44px;opacity:0.3}
-  .empty-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:18px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted)}
-  .empty-sub{font-size:12px;color:var(--muted);opacity:0.6}
+
+  /* ── RIGHT PANEL ── */
+  .panel-right{display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;background:var(--surface)}
+  .panel-right::-webkit-scrollbar{width:3px}
+  .panel-right::-webkit-scrollbar-thumb{background:var(--surface-high);border-radius:2px}
+
+  /* Empty state */
+  .empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:var(--secondary);min-height:400px}
+  .empty-icon{font-size:48px;opacity:0.2}
+  .empty-title{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:20px;letter-spacing:-0.02em;color:var(--primary);opacity:0.3}
+  .empty-sub{font-size:12px;color:var(--secondary);opacity:0.6}
+
+  /* Results */
   .results{display:none;flex-direction:column;min-height:100%}
   .results.visible{display:flex}
-  .metrics-row{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border);flex-shrink:0}
-  .metric-card{padding:16px 20px;border-right:1px solid var(--border);position:relative;overflow:hidden}
-  .metric-card:last-child{border-right:none}
-  .metric-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent);transform:scaleX(0);transform-origin:left;transition:transform 0.6s ease}
-  .metric-card.animate::before{transform:scaleX(1)}
-  .metric-card:nth-child(2)::before{background:var(--accent2)}
-  .metric-card:nth-child(3)::before{background:#a78bfa}
-  .metric-card:nth-child(4)::before{background:var(--warn)}
-  .metric-label{font-size:10px;font-weight:500;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
-  .metric-val{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:28px;line-height:1;color:var(--text);letter-spacing:-0.02em}
-  .metric-val .unit{font-size:13px;font-weight:400;color:var(--muted2);margin-left:2px}
-  /* content-area : hauteur fixe pour les 3 premières rows, row 4 (segments) auto */
-  .content-area{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:280px 200px 160px auto;gap:1px;background:var(--border)}
-  .content-block{background:var(--bg);display:flex;flex-direction:column;overflow:hidden;padding:14px 16px}
-  .content-block.block-segments{overflow:visible}
+
+  /* KPI row */
+  .metrics-row{display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface-lowest);flex-shrink:0;box-shadow:var(--shadow-sm)}
+  .metric-card{padding:20px 24px;position:relative;overflow:hidden}
+  .metric-card+.metric-card{border-left:1px solid var(--outline-variant)}
+  .metric-card::after{content:'';position:absolute;bottom:0;left:24px;right:24px;height:2px;background:var(--primary);transform:scaleX(0);transform-origin:left;transition:transform 0.7s ease;border-radius:2px}
+  .metric-card.animate::after{transform:scaleX(1)}
+  .metric-card:nth-child(2)::after{background:var(--secondary)}
+  .metric-card:nth-child(3)::after{background:#436182}
+  .metric-card:nth-child(4)::after{background:var(--tertiary)}
+  .metric-label{font-family:'Space Grotesk',sans-serif;font-size:9px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:var(--secondary);margin-bottom:8px}
+  .metric-val{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:32px;line-height:1;color:var(--primary);letter-spacing:-0.03em}
+  .metric-val .unit{font-size:14px;font-weight:400;color:var(--secondary);margin-left:3px}
+
+  /* Content grid */
+  .content-area{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:280px 200px 160px auto;gap:2px;background:var(--surface-container)}
+  .content-block{background:var(--surface-lowest);display:flex;flex-direction:column;overflow:hidden;padding:16px 18px}
+  .content-block.block-segments{overflow:visible;background:var(--surface-low)}
   .block-map{grid-column:1;grid-row:1;position:relative}
   .block-chart{grid-column:2;grid-row:1/3}
   .block-profile{grid-column:1;grid-row:2}
-  .block-repartition{grid-column:1;grid-row:3}
+  .block-repartition{grid-column:1;grid-row:3;background:var(--surface-low)}
   .block-critique{grid-column:2;grid-row:3}
   .block-segments{grid-column:1/-1;grid-row:4;overflow:visible}
-  .block-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;flex-shrink:0;display:flex;align-items:center;gap:8px}
+
+  .block-title{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--secondary);margin-bottom:12px;flex-shrink:0;display:flex;align-items:center;gap:8px}
   .legend{display:flex;gap:14px;margin-left:auto}
-  .legend-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted2)}
+  .legend-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--on-surface-variant)}
   .legend-line{width:16px;height:2px;border-radius:1px}
-  .legend-bar{width:10px;height:10px;border-radius:2px}
-  #map{flex:1;min-height:0}
-  .leaflet-container{background:#0f1217 !important}
-  .leaflet-tile{filter:brightness(0.7) saturate(0.4)}
+  .legend-bar{width:10px;height:10px;border-radius:3px}
+
+  /* Map */
+  #map{flex:1;min-height:0;border-radius:8px;overflow:hidden}
+  .leaflet-container{background:#e8eff8 !important}
+  .leaflet-tile{filter:saturate(0.5) brightness(1.05)}
+
+  /* Charts */
   canvas{flex:1;min-height:0}
   #chartProfile{flex:1;min-height:0}
 
-  /* ── Curseur synchronisé ── */
+  /* Cursor marker */
   .cursor-marker-dot{
     width:14px;height:14px;
-    background:var(--accent);
-    border-radius:50%;
+    background:var(--primary);border-radius:50%;
     border:2px solid #fff;
-    box-shadow:0 0 12px rgba(200,241,53,0.9),0 0 4px rgba(0,0,0,0.6);
+    box-shadow:0 0 0 3px rgba(0,37,66,0.2),0 2px 8px rgba(0,37,66,0.3);
   }
-  /* Tooltip flottant positionné dans le bloc carte */
+
+  /* Cursor tooltip — glassmorphism */
   .cursor-tooltip{
-    position:absolute;bottom:10px;right:10px;
-    background:rgba(15,18,23,0.95);
-    border:1px solid rgba(200,241,53,0.25);
-    padding:9px 13px;
+    position:absolute;bottom:12px;right:12px;
+    background:rgba(255,255,255,0.75);
+    backdrop-filter:blur(24px);
+    border-radius:12px;
+    padding:10px 14px;
     font-size:11px;
     pointer-events:none;
     z-index:500;
     display:none;
     white-space:nowrap;
-    box-shadow:0 4px 20px rgba(0,0,0,0.6);
+    box-shadow:0 8px 32px rgba(0,37,66,0.12);
   }
   .cursor-tooltip.visible{display:block}
-  .ct-row{display:flex;align-items:center;gap:8px;margin-bottom:4px;line-height:1}
+  .ct-row{display:flex;align-items:center;gap:9px;margin-bottom:5px;line-height:1}
   .ct-row:last-child{margin-bottom:0}
   .ct-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
-  .ct-lbl{color:var(--muted);font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;min-width:56px}
-  .ct-val{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;color:var(--text)}
+  .ct-lbl{color:var(--secondary);font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;min-width:58px;font-family:'Space Grotesk',sans-serif;font-weight:500}
+  .ct-val{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px;color:var(--primary)}
 
-  .repartition-list{display:flex;flex-direction:column;gap:7px;flex:1;justify-content:center}
-  .rep-row{display:flex;align-items:center;gap:8px;font-size:11px}
-  .rep-label{color:var(--muted2);width:72px;flex-shrink:0}
-  .rep-bar-wrap{flex:1;height:4px;background:var(--surface3);border-radius:2px;overflow:hidden}
-  .rep-bar{height:100%;border-radius:2px;transition:width 0.8s ease}
-  .rep-val{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;color:var(--text);min-width:76px;text-align:right}
+  /* Répartition */
+  .repartition-list{display:flex;flex-direction:column;gap:10px;flex:1;justify-content:center}
+  .rep-row{display:flex;align-items:center;gap:10px;font-size:11px}
+  .rep-label{color:var(--on-surface-variant);width:76px;flex-shrink:0;font-weight:500}
+  .rep-bar-wrap{flex:1;height:3px;background:var(--surface-container);border-radius:2px;overflow:hidden}
+  .rep-bar{height:100%;border-radius:2px;transition:width 0.9s ease}
+  .rep-val{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:11px;color:var(--primary);min-width:80px;text-align:right}
+
+  /* Critique */
   .critique-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;flex:1;align-content:center}
-  .critique-item{background:var(--surface2);padding:9px 12px;border:1px solid var(--border)}
-  .critique-item-label{font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
-  .critique-item-val{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:18px;color:var(--text)}
-  .critique-item-val .unit{font-size:11px;font-weight:400;color:var(--muted2);margin-left:2px}
-  .critique-item.highlight .critique-item-val{color:var(--warn)}
+  .critique-item{background:var(--surface-low);padding:10px 12px;border-radius:10px}
+  .critique-item-label{font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--secondary);margin-bottom:5px;font-family:'Space Grotesk',sans-serif;font-weight:500}
+  .critique-item-val{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:20px;color:var(--primary)}
+  .critique-item-val .unit{font-size:11px;font-weight:400;color:var(--secondary);margin-left:2px}
+  .critique-item.highlight{background:var(--primary)}
+  .critique-item.highlight .critique-item-label{color:rgba(171,201,239,0.8)}
+  .critique-item.highlight .critique-item-val{color:#fff}
+
+  /* Table segments */
   .table-wrap{overflow-y:visible;flex:1}
-  .table-wrap::-webkit-scrollbar{width:3px}
-  .table-wrap::-webkit-scrollbar-thumb{background:var(--surface3)}
   table{width:100%;border-collapse:collapse;font-size:11px}
-  thead th{position:sticky;top:0;background:var(--surface);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);padding:7px 12px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
-  tbody tr{border-bottom:1px solid rgba(255,255,255,0.03);transition:background 0.15s}
-  tbody tr:hover{background:var(--surface2)}
-  tbody td{padding:6px 12px;color:var(--muted2);white-space:nowrap}
-  .speed-badge{display:inline-flex;align-items:center;gap:5px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px}
+  thead th{
+    position:sticky;top:0;background:var(--surface-low);
+    font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:9px;
+    letter-spacing:0.15em;text-transform:uppercase;color:var(--secondary);
+    padding:8px 14px;text-align:left;white-space:nowrap;
+  }
+  tbody tr{border-bottom:1px solid var(--outline-variant);transition:background 0.15s}
+  tbody tr:hover{background:var(--surface-low)}
+  tbody td{padding:7px 14px;color:var(--on-surface-variant);white-space:nowrap}
+  .speed-badge{display:inline-flex;align-items:center;gap:6px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:12px;color:var(--on-surface)}
   .speed-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
-  .toast{position:fixed;bottom:20px;right:20px;background:var(--danger);color:#fff;padding:10px 18px;font-size:13px;font-weight:500;display:none;z-index:999;max-width:300px}
+
+  /* Seg toggle button */
+  .seg-toggle{
+    background:var(--surface-lowest);border:none;
+    color:var(--secondary);
+    font-family:'Space Grotesk',sans-serif;font-size:9px;
+    letter-spacing:0.12em;text-transform:uppercase;font-weight:600;
+    padding:4px 10px;cursor:pointer;transition:all 0.15s;
+    margin-left:auto;border-radius:6px;
+    box-shadow:var(--shadow-sm);
+  }
+  .seg-toggle:hover{background:var(--primary);color:#fff}
+
+  /* Toast */
+  .toast{position:fixed;bottom:20px;right:20px;background:var(--error);color:#fff;padding:12px 20px;font-size:13px;font-weight:500;display:none;z-index:999;max-width:320px;border-radius:10px;box-shadow:0 8px 24px rgba(186,26,26,0.3)}
   .toast.visible{display:block}
-  .seg-toggle{background:none;border:1px solid var(--border);color:var(--muted2);font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;padding:3px 8px;cursor:pointer;transition:all 0.15s;margin-left:auto}
-  .seg-toggle:hover{border-color:var(--accent);color:var(--accent)}
 </style>
 </head>
 <body>
+
+<!-- TOPBAR -->
 <div class="topbar">
-  <div class="logo"><div class="logo-dot"></div>ALLURE</div>
+  <div class="logo">
+    <div class="logo-badge">
+      <svg viewBox="0 0 16 16"><path d="M2 8c0-3.3 2.7-6 6-6s6 2.7 6 6-2.7 6-6 6-6-2.7-6-6z"/><path d="M8 5v3l2 2"/></svg>
+    </div>
+    <div>
+      <div>ALLURE</div>
+      <div class="logo-sub">Wind Tunnel Simulator</div>
+    </div>
+  </div>
   <div class="status-pill" id="statusPill"><div class="dot"></div><span id="statusText">En attente</span></div>
 </div>
+
 <div class="workspace">
+
+  <!-- LEFT PANEL -->
   <div class="panel-left">
+
     <div class="panel-section">
-      <div class="section-header"><span>📂</span><span class="section-header-label">Parcours GPX</span></div>
+      <div class="section-header"><div class="section-icon">📂</div><span class="section-header-label">Parcours GPX</span></div>
       <div class="upload-zone" id="uploadZone">
         <input type="file" id="gpxFile" accept=".gpx">
         <div class="upload-icon">🗺️</div>
@@ -181,8 +302,9 @@
         <div class="file-name" id="fileName"></div>
       </div>
     </div>
+
     <div class="panel-section">
-      <div class="section-header"><span>👤</span><span class="section-header-label">Cycliste & Vélo</span></div>
+      <div class="section-header"><div class="section-icon">👤</div><span class="section-header-label">Cycliste & Vélo</span></div>
       <div class="field">
         <div class="field-label"><span>Cycliste + équipements</span><span class="field-value" id="poidsCyclisteVal">75 kg</span></div>
         <input type="range" id="poidsCycliste" min="40" max="130" value="75" oninput="updatePoidsTotal()">
@@ -190,7 +312,7 @@
       <div class="field">
         <div class="field-label"><span>Vélo</span><span class="field-value" id="poidsVeloVal">8 kg</span></div>
         <input type="range" id="poidsVelo" min="4" max="20" value="8" oninput="updatePoidsTotal()">
-        <div class="field-hint">Total : <span id="poidsTotalVal" style="color:var(--accent);font-weight:600">83 kg</span></div>
+        <div class="field-hint">Total : <span id="poidsTotalVal" style="color:var(--primary);font-weight:700">83 kg</span></div>
       </div>
       <div class="field">
         <div class="field-label"><span>Aérodynamisme CdA</span><span class="field-value" id="cdaVal">0.26</span></div>
@@ -203,16 +325,18 @@
         </div>
       </div>
     </div>
+
     <div class="panel-section">
-      <div class="section-header"><span>⚡</span><span class="section-header-label">Puissance</span></div>
+      <div class="section-header"><div class="section-icon">⚡</div><span class="section-header-label">Puissance</span></div>
       <div class="field">
-        <div class="field-label"><span>Watts</span></div>
+        <div class="field-label"><span>Watts (NP)</span></div>
         <input type="number" class="number-input" id="watts" value="239" min="50" max="600">
-        <div class="field-hint">Normalized Power (NP) — puissance normalisée, représentative de l'effort réel sur parcours vallonné.</div>
+        <div class="field-hint">Normalized Power — représentative de l'effort réel sur parcours vallonné.</div>
       </div>
     </div>
+
     <div class="panel-section">
-      <div class="section-header"><span>👥</span><span class="section-header-label">Peloton</span></div>
+      <div class="section-header"><div class="section-icon">👥</div><span class="section-header-label">Peloton</span></div>
       <div class="toggle-row">
         <span class="toggle-label">Rouler en peloton</span>
         <div class="toggle" id="pelotonToggle" onclick="togglePeloton()"></div>
@@ -224,8 +348,9 @@
         </div>
       </div>
     </div>
+
     <div class="panel-section">
-      <div class="section-header"><span>🌬️</span><span class="section-header-label">Météo</span></div>
+      <div class="section-header"><div class="section-icon">🌬️</div><span class="section-header-label">Météo</span></div>
       <div class="field">
         <div class="field-label"><span>Vitesse vent</span><span class="field-value" id="ventVal">5 km/h</span></div>
         <input type="range" id="vent" min="0" max="80" value="5" oninput="document.getElementById('ventVal').textContent=this.value+' km/h'">
@@ -235,38 +360,46 @@
         <input type="range" id="dir" min="0" max="359" value="0" oninput="updateDir(this.value)">
       </div>
     </div>
+
     <button class="btn-simulate" id="btnSimulate" onclick="lancerSimulation()" disabled>
       <div class="spinner" id="spinner"></div>
       <span id="btnText">Importe un GPX</span>
     </button>
-    <div class="cold-start-hint">Le premier chargement peut être plus long</div>
+    <div class="cold-start-hint">⏳ Le premier chargement peut être plus long</div>
+
   </div>
 
+  <!-- RIGHT PANEL -->
   <div class="panel-right">
+
     <div class="empty-state" id="emptyState">
       <div class="empty-icon">🚴</div>
       <div class="empty-title">ALLURE</div>
       <div class="empty-sub">Importe un fichier GPX et lance la simulation</div>
     </div>
+
     <div class="results" id="results">
+
+      <!-- KPIs -->
       <div class="metrics-row">
         <div class="metric-card" id="mc0"><div class="metric-label">⏱ Temps estimé</div><div class="metric-val" id="mTemps">—</div></div>
         <div class="metric-card" id="mc1"><div class="metric-label">⚡ Vitesse moyenne</div><div class="metric-val" id="mVitesse">—</div></div>
         <div class="metric-card" id="mc2"><div class="metric-label">📏 Distance</div><div class="metric-val" id="mDist">—</div></div>
         <div class="metric-card" id="mc3"><div class="metric-label">⛰ Dénivelé +</div><div class="metric-val" id="mDeniv">—</div></div>
       </div>
+
       <div class="content-area">
 
         <!-- Carte -->
         <div class="content-block block-map">
-          <div class="block-title">🗺 Carte GPS</div>
+          <div class="block-title">Carte GPS</div>
           <div id="map"></div>
           <div class="cursor-tooltip" id="cursorTooltip">
-            <div class="ct-row"><div class="ct-dot" style="background:var(--muted2)"></div><span class="ct-lbl">Distance</span><span class="ct-val" id="ttDist">—</span></div>
-            <div class="ct-row"><div class="ct-dot" style="background:var(--accent2)"></div><span class="ct-lbl">Altitude</span><span class="ct-val" id="ttAlt">—</span></div>
-            <div class="ct-row"><div class="ct-dot" style="background:var(--accent)"></div><span class="ct-lbl">Vitesse</span><span class="ct-val" id="ttVitesse">—</span></div>
-            <div class="ct-row"><div class="ct-dot" style="background:#38bdf8"></div><span class="ct-lbl">Puissance</span><span class="ct-val" id="ttWatts">—</span></div>
-            <div class="ct-row"><div class="ct-dot" style="background:var(--warn)"></div><span class="ct-lbl">Pente</span><span class="ct-val" id="ttPente">—</span></div>
+            <div class="ct-row"><div class="ct-dot" style="background:var(--secondary)"></div><span class="ct-lbl">Distance</span><span class="ct-val" id="ttDist">—</span></div>
+            <div class="ct-row"><div class="ct-dot" style="background:#436182"></div><span class="ct-lbl">Altitude</span><span class="ct-val" id="ttAlt">—</span></div>
+            <div class="ct-row"><div class="ct-dot" style="background:var(--primary)"></div><span class="ct-lbl">Vitesse</span><span class="ct-val" id="ttVitesse">—</span></div>
+            <div class="ct-row"><div class="ct-dot" style="background:var(--tertiary)"></div><span class="ct-lbl">Puissance</span><span class="ct-val" id="ttWatts">—</span></div>
+            <div class="ct-row"><div class="ct-dot" style="background:#7a4f00"></div><span class="ct-lbl">Pente</span><span class="ct-val" id="ttPente">—</span></div>
           </div>
         </div>
 
@@ -274,8 +407,8 @@
         <div class="content-block block-chart">
           <div class="block-title">Vitesse &amp; Puissance
             <div class="legend">
-              <div class="legend-item"><div class="legend-line" style="background:#c8f135"></div>Vitesse</div>
-              <div class="legend-item"><div class="legend-bar" style="background:rgba(56,189,248,0.6)"></div>Puissance</div>
+              <div class="legend-item"><div class="legend-line" style="background:var(--primary)"></div>Vitesse</div>
+              <div class="legend-item"><div class="legend-bar" style="background:rgba(70,98,112,0.35)"></div>Puissance</div>
             </div>
           </div>
           <canvas id="chartCombo"></canvas>
@@ -283,48 +416,66 @@
 
         <!-- Profil altimétrique -->
         <div class="content-block block-profile">
-          <div class="block-title">📈 Profil altimétrique</div>
+          <div class="block-title">Profil altimétrique</div>
           <canvas id="chartProfile"></canvas>
         </div>
 
         <!-- Répartition -->
         <div class="content-block block-repartition">
-          <div class="block-title">📊 Répartition du profil <span style="color:var(--muted);font-weight:400;font-size:9px;letter-spacing:0.05em;text-transform:none;margin-left:4px">(montée ≥ 4%, descente ≤ −4%)</span></div>
+          <div class="block-title">Répartition du profil <span style="color:var(--secondary);font-size:8px;letter-spacing:0.05em;text-transform:none;font-weight:400;margin-left:4px">(montée ≥ 4% · descente ≤ −4%)</span></div>
           <div class="repartition-list">
-            <div class="rep-row"><span class="rep-label">Montées</span><div class="rep-bar-wrap"><div class="rep-bar" id="barMontees" style="width:0%;background:var(--warn)"></div></div><span class="rep-val" id="valMontees">—</span></div>
-            <div class="rep-row"><span class="rep-label">Descentes</span><div class="rep-bar-wrap"><div class="rep-bar" id="barDescentes" style="width:0%;background:var(--accent2)"></div></div><span class="rep-val" id="valDescentes">—</span></div>
-            <div class="rep-row"><span class="rep-label">Plat</span><div class="rep-bar-wrap"><div class="rep-bar" id="barPlat" style="width:0%;background:var(--muted)"></div></div><span class="rep-val" id="valPlat">—</span></div>
+            <div class="rep-row"><span class="rep-label">Montées</span><div class="rep-bar-wrap"><div class="rep-bar" id="barMontees" style="width:0%;background:var(--primary)"></div></div><span class="rep-val" id="valMontees">—</span></div>
+            <div class="rep-row"><span class="rep-label">Descentes</span><div class="rep-bar-wrap"><div class="rep-bar" id="barDescentes" style="width:0%;background:var(--secondary)"></div></div><span class="rep-val" id="valDescentes">—</span></div>
+            <div class="rep-row"><span class="rep-label">Plat</span><div class="rep-bar-wrap"><div class="rep-bar" id="barPlat" style="width:0%;background:var(--surface-high)"></div></div><span class="rep-val" id="valPlat">—</span></div>
           </div>
         </div>
 
         <!-- Critique -->
         <div class="content-block block-critique">
-          <div class="block-title">⚠️ Vitesse minimum</div>
+          <div class="block-title">Segment critique — pente max (10 m)</div>
           <div class="critique-grid">
-            <div class="critique-item highlight"><div class="critique-item-label">Pente max (segment 10m)</div><div class="critique-item-val" id="critPente">—<span class="unit">%</span></div></div>
-            <div class="critique-item"><div class="critique-item-label">Vitesse sur ce segment</div><div class="critique-item-val" id="critVitesse">—<span class="unit">km/h</span></div></div>
-            <div class="critique-item"><div class="critique-item-label">Puissance nécessaire</div><div class="critique-item-val" id="critWatts">—<span class="unit">W</span></div></div>
-            <div class="critique-item" style="grid-column:1/-1;background:transparent;border:none;padding:4px 0 0;display:flex;align-items:center;gap:6px">
-              <div class="ct-dot" style="width:5px;height:5px;border-radius:50%;background:var(--warn);flex-shrink:0"></div>
-              <span style="font-size:10px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase">Localisation</span>
-              <span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;color:var(--text);margin-left:4px" id="critKm">—</span>
+            <div class="critique-item highlight">
+              <div class="critique-item-label">Pente max</div>
+              <div class="critique-item-val" id="critPente">—<span class="unit">%</span></div>
+            </div>
+            <div class="critique-item">
+              <div class="critique-item-label">Vitesse</div>
+              <div class="critique-item-val" id="critVitesse">—<span class="unit">km/h</span></div>
+            </div>
+            <div class="critique-item">
+              <div class="critique-item-label">Puissance</div>
+              <div class="critique-item-val" id="critWatts">—<span class="unit">W</span></div>
+            </div>
+            <div class="critique-item" style="grid-column:1/-1;background:transparent;padding:4px 0 0;display:flex;align-items:center;gap:8px">
+              <div style="width:5px;height:5px;border-radius:50%;background:var(--secondary);flex-shrink:0"></div>
+              <span style="font-family:'Space Grotesk',sans-serif;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--secondary);font-weight:600">Localisation</span>
+              <span style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px;color:var(--primary);margin-left:4px" id="critKm">—</span>
             </div>
           </div>
         </div>
 
         <!-- Segments -->
         <div class="content-block block-segments">
-          <div class="block-title">📋 Segments — 1 km / 1 km<button class="seg-toggle" id="segToggle" onclick="toggleSegments()">▼ Afficher</button></div>
-          <div class="table-wrap" id="tableWrap" style="display:none">
-            <table><thead><tr><th>Km</th><th>Alt. moy</th><th>Pente moy</th><th>Vitesse moy</th><th>Puissance moy</th><th>Temps</th><th>Peloton</th></tr></thead><tbody id="tableBody"></tbody></table>
+          <div class="block-title">
+            Segments — 1 km / 1 km
+            <button class="seg-toggle" id="segToggle" onclick="toggleSegments()">▼ Afficher</button>
           </div>
-          <div id="segClosed" style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px;font-style:italic;">Cliquer sur Afficher pour voir le détail kilomètre par kilomètre</div>
+          <div class="table-wrap" id="tableWrap" style="display:none">
+            <table>
+              <thead><tr><th>Km</th><th>Alt. moy</th><th>Pente moy</th><th>Vitesse moy</th><th>Puissance moy</th><th>Temps</th><th>Peloton</th></tr></thead>
+              <tbody id="tableBody"></tbody>
+            </table>
+          </div>
+          <div id="segClosed" style="padding:16px 0;display:flex;align-items:center;justify-content:center;color:var(--secondary);font-size:11px;font-style:italic;">
+            Cliquer sur Afficher pour voir le détail kilomètre par kilomètre
+          </div>
         </div>
 
       </div>
     </div>
   </div>
 </div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -334,10 +485,10 @@ const API="https://allure-api-1s16.onrender.com";
 let pelotonOn=false,chartCombo=null,chartProfile=null,leafletMap=null,segVisible=false;
 let cursorMarker=null;
 let allSegs=[];
-let altSampledSegs=[];  // segments sous-échantillonnés alignés sur chartProfile
-let kmSampledSegs=[];   // segments agrégés par km alignés sur chartCombo
+let altSampledSegs=[];
+let kmSampledSegs=[];
 
-// ── Plugin Chart.js : ligne verticale crosshair ──
+// ── Chart.js crosshair plugin ──
 const crosshairPlugin={
   id:'crosshair',
   afterDraw(chart){
@@ -347,18 +498,17 @@ const crosshairPlugin={
     ctx.beginPath();
     ctx.moveTo(chart._crosshairX,top);
     ctx.lineTo(chart._crosshairX,bottom);
-    ctx.strokeStyle='rgba(200,241,53,0.55)';
+    ctx.strokeStyle='rgba(0,37,66,0.35)';
     ctx.lineWidth=1;
     ctx.setLineDash([3,4]);
     ctx.stroke();
-    // Petit cercle sur la courbe de vitesse (dataset index 0 pour profile, 1 pour combo)
-    const dsIdx = chart.config.type==='line' ? 0 : 1;
+    const dsIdx=chart.config.type==='line'?0:1;
     const meta=chart.getDatasetMeta(dsIdx);
-    if(meta._crosshairPtIdx!=null && meta.data[meta._crosshairPtIdx]){
+    if(meta._crosshairPtIdx!=null&&meta.data[meta._crosshairPtIdx]){
       const pt=meta.data[meta._crosshairPtIdx];
       ctx.beginPath();
       ctx.arc(pt.x,pt.y,4,0,Math.PI*2);
-      ctx.fillStyle='#c8f135';
+      ctx.fillStyle='#002542';
       ctx.fill();
       ctx.strokeStyle='#fff';
       ctx.lineWidth=1.5;
@@ -384,10 +534,7 @@ function toggleSegments(){
   document.getElementById('tableWrap').style.display=segVisible?'block':'none';
   document.getElementById('segClosed').style.display=segVisible?'none':'flex';
   document.getElementById('segToggle').textContent=segVisible?'▲ Masquer':'▼ Afficher';
-  if(!segVisible){
-    // Remonter en haut du panel-right
-    document.querySelector('.panel-right').scrollTo({top:0,behavior:'smooth'});
-  }
+  if(!segVisible) document.querySelector('.panel-right').scrollTo({top:0,behavior:'smooth'});
 }
 
 document.getElementById('gpxFile').addEventListener('change',function(){
@@ -423,7 +570,7 @@ async function lancerSimulation(){
   const form=new FormData();
   form.append('fichier',file);
   form.append('puissance_w',document.getElementById('watts').value);
-  form.append('poids_kg', parseInt(document.getElementById('poidsCycliste').value) + parseInt(document.getElementById('poidsVelo').value));
+  form.append('poids_kg',parseInt(document.getElementById('poidsCycliste').value)+parseInt(document.getElementById('poidsVelo').value));
   form.append('cda',document.getElementById('cda').value);
   form.append('v_vent_kmh',document.getElementById('vent').value);
   form.append('dir_vent_deg',document.getElementById('dir').value);
@@ -449,73 +596,32 @@ function agregerParKm(segs){
     watts_moy:Math.round(arr.reduce((a,s)=>a+s.watts,0)/arr.length),
     temps_s:arr.reduce((a,s)=>a+s.temps_seg_s,0),
     peloton:arr.some(s=>s.peloton),
-    // position représentative pour la carte
     lat:arr[Math.floor(arr.length/2)].lat,
     lon:arr[Math.floor(arr.length/2)].lon,
   }));
 }
 
-// ── Curseur synchronisé ──
-// source : 'profile' | 'combo'
-// ptIdx  : index du point dans le dataset du graphique source
-function syncCursor(ptIdx, source){
+function syncCursor(ptIdx,source){
   if(!allSegs.length) return;
-
-  let seg;           // segment brut à afficher
-  let profileIdx;    // index dans altSampledSegs → chartProfile
-  let comboIdx;      // index dans kmSampledSegs  → chartCombo
-
+  let seg,profileIdx,comboIdx;
   if(source==='profile'){
-    profileIdx = Math.min(ptIdx, altSampledSegs.length-1);
-    seg = altSampledSegs[profileIdx];
-    // trouver l'index combo le plus proche en km
-    const targetKm = seg.distance_cumulee_km;
-    comboIdx = kmSampledSegs.reduce((best,k,i)=>
-      Math.abs(k.km-targetKm)<Math.abs(kmSampledSegs[best].km-targetKm)?i:best, 0);
+    profileIdx=Math.min(ptIdx,altSampledSegs.length-1);
+    seg=altSampledSegs[profileIdx];
+    const targetKm=seg.distance_cumulee_km;
+    comboIdx=kmSampledSegs.reduce((best,k,i)=>Math.abs(k.km-targetKm)<Math.abs(kmSampledSegs[best].km-targetKm)?i:best,0);
   } else {
-    comboIdx = Math.min(ptIdx, kmSampledSegs.length-1);
-    const km = kmSampledSegs[comboIdx];
-    // segment brut le plus proche en km
-    seg = allSegs.reduce((best,s)=>
-      Math.abs(s.distance_cumulee_km-km.km)<Math.abs(best.distance_cumulee_km-km.km)?s:best,
-      allSegs[0]);
-    // index profile le plus proche
-    profileIdx = altSampledSegs.reduce((best,s,i)=>
-      Math.abs(s.distance_cumulee_km-seg.distance_cumulee_km)<Math.abs(altSampledSegs[best].distance_cumulee_km-seg.distance_cumulee_km)?i:best, 0);
+    comboIdx=Math.min(ptIdx,kmSampledSegs.length-1);
+    const km=kmSampledSegs[comboIdx];
+    seg=allSegs.reduce((best,s)=>Math.abs(s.distance_cumulee_km-km.km)<Math.abs(best.distance_cumulee_km-km.km)?s:best,allSegs[0]);
+    profileIdx=altSampledSegs.reduce((best,s,i)=>Math.abs(s.distance_cumulee_km-seg.distance_cumulee_km)<Math.abs(altSampledSegs[best].distance_cumulee_km-seg.distance_cumulee_km)?i:best,0);
   }
-
-  // 1. Crosshair + point sur chartProfile
-  if(chartProfile){
-    const meta=chartProfile.getDatasetMeta(0);
-    if(meta.data[profileIdx]){
-      chartProfile._crosshairX=meta.data[profileIdx].x;
-      chartProfile.getDatasetMeta(0)._crosshairPtIdx=profileIdx;
-      chartProfile.draw();
-    }
-  }
-
-  // 2. Crosshair + point sur chartCombo (courbe vitesse = dataset 1)
-  if(chartCombo){
-    const meta=chartCombo.getDatasetMeta(1);
-    if(meta.data[comboIdx]){
-      chartCombo._crosshairX=meta.data[comboIdx].x;
-      chartCombo.getDatasetMeta(1)._crosshairPtIdx=comboIdx;
-      chartCombo.draw();
-    }
-  }
-
-  // 3. Marqueur Leaflet
-  if(leafletMap && seg){
+  if(chartProfile){const meta=chartProfile.getDatasetMeta(0);if(meta.data[profileIdx]){chartProfile._crosshairX=meta.data[profileIdx].x;chartProfile.getDatasetMeta(0)._crosshairPtIdx=profileIdx;chartProfile.draw();}}
+  if(chartCombo){const meta=chartCombo.getDatasetMeta(1);if(meta.data[comboIdx]){chartCombo._crosshairX=meta.data[comboIdx].x;chartCombo.getDatasetMeta(1)._crosshairPtIdx=comboIdx;chartCombo.draw();}}
+  if(leafletMap&&seg){
     const latlng=[seg.lat,seg.lon];
-    if(!cursorMarker){
-      const icon=L.divIcon({html:'<div class="cursor-marker-dot"></div>',className:'',iconSize:[14,14],iconAnchor:[7,7]});
-      cursorMarker=L.marker(latlng,{icon,zIndexOffset:1000,interactive:false}).addTo(leafletMap);
-    } else {
-      cursorMarker.setLatLng(latlng);
-    }
+    if(!cursorMarker){const icon=L.divIcon({html:'<div class="cursor-marker-dot"></div>',className:'',iconSize:[14,14],iconAnchor:[7,7]});cursorMarker=L.marker(latlng,{icon,zIndexOffset:1000,interactive:false}).addTo(leafletMap);}
+    else cursorMarker.setLatLng(latlng);
   }
-
-  // 4. Tooltip dans le bloc carte
   if(seg){
     document.getElementById('ttDist').textContent=seg.distance_cumulee_km.toFixed(1)+' km';
     document.getElementById('ttAlt').textContent=seg.altitude_m+' m';
@@ -527,8 +633,6 @@ function syncCursor(ptIdx, source){
   }
 }
 
-
-
 function clearCursor(){
   if(chartProfile){chartProfile._crosshairX=null;if(chartProfile.getDatasetMeta(0))chartProfile.getDatasetMeta(0)._crosshairPtIdx=null;chartProfile.draw();}
   if(chartCombo){chartCombo._crosshairX=null;if(chartCombo.getDatasetMeta(1))chartCombo.getDatasetMeta(1)._crosshairPtIdx=null;chartCombo.draw();}
@@ -536,7 +640,7 @@ function clearCursor(){
   document.getElementById('cursorTooltip').classList.remove('visible');
 }
 
-function attachCursor(canvas, source){
+function attachCursor(canvas,source){
   canvas.style.cursor='crosshair';
   canvas.addEventListener('mousemove',e=>{
     const rect=canvas.getBoundingClientRect();
@@ -548,10 +652,13 @@ function attachCursor(canvas, source){
     if(!meta.data.length) return;
     let closest=0,minDist=Infinity;
     meta.data.forEach((pt,i)=>{const d=Math.abs(pt.x-mouseX);if(d<minDist){minDist=d;closest=i;}});
-    syncCursor(closest, source);
+    syncCursor(closest,source);
   });
-  canvas.addEventListener('mouseleave', clearCursor);
+  canvas.addEventListener('mouseleave',clearCursor);
 }
+
+// Chart.js scale colors for light theme
+const scaleOpts=(color)=>({ticks:{color,font:{size:9,family:'Space Grotesk'}},grid:{color:'rgba(0,37,66,0.05)'},border:{color:'rgba(0,37,66,0.08)'}});
 
 function afficherResultats(data){
   document.getElementById('emptyState').style.display='none';
@@ -572,12 +679,12 @@ function afficherResultats(data){
   // ── Carte ──
   if(leafletMap){leafletMap.remove();leafletMap=null;cursorMarker=null;}
   leafletMap=L.map('map',{zoomControl:true,attributionControl:false});
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(leafletMap);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(leafletMap);
   const step=Math.max(1,Math.floor(segs.length/600));
   for(let i=0;i<segs.length-step;i+=step){
     const v=segs[i].vitesse_kmh;const ratio=vmax===vmin?0.5:(v-vmin)/(vmax-vmin);
-    const color=ratio>0.66?'#22c55e':ratio>0.33?'#f59e0b':'#ef4444';
-    L.polyline([[segs[i].lat,segs[i].lon],[segs[i+step].lat,segs[i+step].lon]],{color,weight:3,opacity:0.9}).addTo(leafletMap);
+    const color=ratio>0.66?'#1a6b3a':ratio>0.33?'#7a4f00':'#ba1a1a';
+    L.polyline([[segs[i].lat,segs[i].lon],[segs[i+step].lat,segs[i+step].lon]],{color,weight:3,opacity:0.85}).addTo(leafletMap);
   }
   const iconDiv=(e)=>L.divIcon({html:`<div style="font-size:16px">${e}</div>`,className:'',iconAnchor:[8,8]});
   L.marker([segs[0].lat,segs[0].lon],{icon:iconDiv('🟢')}).addTo(leafletMap);
@@ -587,8 +694,7 @@ function afficherResultats(data){
   // ── Profil altimétrique ──
   if(chartProfile)chartProfile.destroy();
   const altStep=Math.max(1,Math.floor(segs.length/300));
-  const altLabels=[];const altData=[];
-  altSampledSegs=[];
+  const altLabels=[];const altData=[];altSampledSegs=[];
   for(let i=0;i<segs.length;i+=altStep){
     altLabels.push(segs[i].distance_cumulee_km.toFixed(1)+' km');
     altData.push(segs[i].altitude_m);
@@ -598,15 +704,15 @@ function afficherResultats(data){
   chartProfile=new Chart(profileCanvas,{
     type:'line',
     data:{labels:altLabels,datasets:[{
-      data:altData,borderColor:'rgba(56,189,248,0.8)',borderWidth:1.5,fill:true,
-      backgroundColor:'rgba(56,189,248,0.08)',pointRadius:0,tension:0.3
+      data:altData,borderColor:'#002542',borderWidth:1.5,fill:true,
+      backgroundColor:'rgba(0,37,66,0.06)',pointRadius:0,tension:0.3
     }]},
     options:{
       responsive:true,maintainAspectRatio:false,animation:{duration:400},
       plugins:{legend:{display:false},tooltip:{enabled:false}},
       scales:{
-        x:{ticks:{color:'#5a6272',font:{size:8},maxTicksLimit:8},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.06)'}},
-        y:{ticks:{color:'#38bdf8',font:{size:8}},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.06)'},title:{display:true,text:'m',color:'#38bdf8',font:{size:8}}}
+        x:{...scaleOpts('#466270'),ticks:{...scaleOpts('#466270').ticks,maxTicksLimit:8}},
+        y:{...scaleOpts('#002542'),title:{display:true,text:'m',color:'#466270',font:{size:9}}}
       }
     }
   });
@@ -619,23 +725,23 @@ function afficherResultats(data){
     data:{
       labels:kms.map(k=>k.km+' km'),
       datasets:[
-        {type:'bar',label:'Puissance (W)',data:kms.map(k=>k.watts_moy),backgroundColor:'rgba(56,189,248,0.4)',borderColor:'rgba(56,189,248,0.7)',borderWidth:1,yAxisID:'yW',order:2},
-        {type:'line',label:'Vitesse (km/h)',data:kms.map(k=>k.vitesse_moy),borderColor:'#c8f135',borderWidth:2,fill:false,pointRadius:0,tension:0.35,yAxisID:'yV',order:1}
+        {type:'bar',label:'Puissance (W)',data:kms.map(k=>k.watts_moy),backgroundColor:'rgba(70,98,112,0.2)',borderColor:'rgba(70,98,112,0.5)',borderWidth:1,yAxisID:'yW',order:2},
+        {type:'line',label:'Vitesse (km/h)',data:kms.map(k=>k.vitesse_moy),borderColor:'#002542',borderWidth:2,fill:false,pointRadius:0,tension:0.35,yAxisID:'yV',order:1}
       ]
     },
     options:{
       responsive:true,maintainAspectRatio:false,animation:{duration:500},
       plugins:{legend:{display:false},tooltip:{enabled:false}},
       scales:{
-        x:{ticks:{color:'#5a6272',font:{size:9},maxTicksLimit:14},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.06)'}},
-        yV:{position:'left',ticks:{color:'#c8f135',font:{size:9}},grid:{color:'rgba(255,255,255,0.04)'},border:{color:'rgba(255,255,255,0.06)'},title:{display:true,text:'km/h',color:'#c8f135',font:{size:9}}},
-        yW:{position:'right',ticks:{color:'#38bdf8',font:{size:9}},grid:{display:false},title:{display:true,text:'W',color:'#38bdf8',font:{size:9}}}
+        x:{...scaleOpts('#466270'),ticks:{...scaleOpts('#466270').ticks,maxTicksLimit:14}},
+        yV:{position:'left',...scaleOpts('#002542'),title:{display:true,text:'km/h',color:'#002542',font:{size:9}}},
+        yW:{position:'right',...scaleOpts('#466270'),grid:{display:false},title:{display:true,text:'W',color:'#466270',font:{size:9}}}
       }
     }
   });
   attachCursor(comboCanvas,'combo');
 
-  // ── Répartition du profil (seuil : montée ≥4%, descente ≤-4%) ──
+  // ── Répartition du profil ──
   const tTotal=data.temps_total_s;
   let tMontees=0,tDescentes=0,tPlat=0;
   for(const s of segs){
@@ -656,7 +762,7 @@ function afficherResultats(data){
   document.getElementById('valDescentes').textContent=fmtH(tDescentes)+' ('+pctD+'%)';
   document.getElementById('valPlat').textContent=fmtH(tPlat)+' ('+pctP+'%)';
 
-  // ── Segment critique : fenêtre ±5m (10m) autour du point le plus raide ──
+  // ── Segment critique ──
   const segMaxPente=segs.reduce((a,s)=>s.pente_pct>a.pente_pct?s:a,segs[0]);
   const centerKm=segMaxPente.distance_cumulee_km;
   const window10m=segs.filter(s=>Math.abs(s.distance_cumulee_km-centerKm)<=0.005);
@@ -673,10 +779,10 @@ function afficherResultats(data){
   const tbody=document.getElementById('tableBody');tbody.innerHTML='';
   for(const k of kms){
     const ratio=vmax===vmin?0.5:(k.vitesse_moy-vmin)/(vmax-vmin);
-    const col=ratio>0.66?'#22c55e':ratio>0.33?'#f59e0b':'#ef4444';
+    const col=ratio>0.66?'#1a6b3a':ratio>0.33?'#7a4f00':'#ba1a1a';
     const mins=Math.floor(k.temps_s/60);const secs=Math.round(k.temps_s%60);
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td style="color:var(--text);font-weight:600">${k.km} km</td><td>${k.alt_moy} m</td><td style="color:${k.pente_moy>3?'#f59e0b':k.pente_moy<-3?'#38bdf8':'#5a6272'}">${k.pente_moy>0?'+':''}${k.pente_moy}%</td><td><span class="speed-badge"><span class="speed-dot" style="background:${col}"></span>${k.vitesse_moy} km/h</span></td><td style="color:#38bdf8">${k.watts_moy} W</td><td>${mins}min ${secs.toString().padStart(2,'0')}s</td><td style="color:${k.peloton?'#c8f135':'#5a6272'}">${k.peloton?'✓':'—'}</td>`;
+    tr.innerHTML=`<td style="color:var(--primary);font-weight:700;font-family:'Space Grotesk',sans-serif">${k.km} km</td><td>${k.alt_moy} m</td><td style="color:${k.pente_moy>4?'#7a4f00':k.pente_moy<-4?'#436182':'var(--secondary)'};">${k.pente_moy>0?'+':''}${k.pente_moy}%</td><td><span class="speed-badge"><span class="speed-dot" style="background:${col}"></span>${k.vitesse_moy} km/h</span></td><td style="color:var(--secondary)">${k.watts_moy} W</td><td>${mins}min ${secs.toString().padStart(2,'0')}s</td><td style="color:${k.peloton?'var(--primary)':'var(--secondary)'}">${k.peloton?'✓':'—'}</td>`;
     tbody.appendChild(tr);
   }
 }
