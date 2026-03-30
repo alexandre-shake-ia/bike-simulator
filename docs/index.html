@@ -301,9 +301,14 @@
         <div class="content-block block-critique">
           <div class="block-title">⚠️ Vitesse minimum</div>
           <div class="critique-grid">
-            <div class="critique-item highlight"><div class="critique-item-label">Segment — pente la plus élevée</div><div class="critique-item-val" id="critPente">—<span class="unit">%</span></div></div>
-            <div class="critique-item"><div class="critique-item-label">Vitesse</div><div class="critique-item-val" id="critVitesse">—<span class="unit">km/h</span></div></div>
+            <div class="critique-item highlight"><div class="critique-item-label">Pente max (segment 10m)</div><div class="critique-item-val" id="critPente">—<span class="unit">%</span></div></div>
+            <div class="critique-item"><div class="critique-item-label">Vitesse sur ce segment</div><div class="critique-item-val" id="critVitesse">—<span class="unit">km/h</span></div></div>
             <div class="critique-item"><div class="critique-item-label">Puissance nécessaire</div><div class="critique-item-val" id="critWatts">—<span class="unit">W</span></div></div>
+            <div class="critique-item" style="grid-column:1/-1;background:transparent;border:none;padding:4px 0 0;display:flex;align-items:center;gap:6px">
+              <div class="ct-dot" style="width:5px;height:5px;border-radius:50%;background:var(--warn);flex-shrink:0"></div>
+              <span style="font-size:10px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase">Localisation</span>
+              <span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;color:var(--text);margin-left:4px" id="critKm">—</span>
+            </div>
           </div>
         </div>
 
@@ -662,6 +667,7 @@ function afficherResultats(data){
   document.getElementById('critPente').innerHTML=penteMax10m+'<span class="unit">%</span>';
   document.getElementById('critVitesse').innerHTML=vitesse10m+'<span class="unit">km/h</span>';
   document.getElementById('critWatts').innerHTML=watts10m+'<span class="unit">W</span>';
+  document.getElementById('critKm').textContent='km '+segMaxPente.distance_cumulee_km.toFixed(1);
 
   // ── Table segments ──
   const tbody=document.getElementById('tableBody');tbody.innerHTML='';
