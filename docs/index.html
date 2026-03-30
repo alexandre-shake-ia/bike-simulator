@@ -30,6 +30,9 @@
   .panel-left{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden}
   .panel-left::-webkit-scrollbar{width:3px}
   .panel-left::-webkit-scrollbar-thumb{background:var(--surface3)}
+  .panel-right{display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;background:var(--bg)}
+  .panel-right::-webkit-scrollbar{width:3px}
+  .panel-right::-webkit-scrollbar-thumb{background:var(--surface3)}
   .panel-section{padding:18px 18px 0}
   .section-header{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
   .section-header-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted2)}
@@ -67,12 +70,11 @@
   .cold-start-hint::before{content:'⏳ '}
   .spinner{width:13px;height:13px;border:2px solid rgba(0,0,0,0.3);border-top-color:var(--bg);border-radius:50%;animation:spin 0.7s linear infinite;display:none}
   @keyframes spin{to{transform:rotate(360deg)}}
-  .panel-right{display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
-  .empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--muted)}
+  .empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--muted);min-height:400px}
   .empty-icon{font-size:44px;opacity:0.3}
   .empty-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:18px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted)}
   .empty-sub{font-size:12px;color:var(--muted);opacity:0.6}
-  .results{display:none;flex-direction:column;height:100%;overflow-y:auto}
+  .results{display:none;flex-direction:column;min-height:100%}
   .results.visible{display:flex}
   .metrics-row{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border);flex-shrink:0}
   .metric-card{padding:16px 20px;border-right:1px solid var(--border);position:relative;overflow:hidden}
@@ -85,7 +87,8 @@
   .metric-label{font-size:10px;font-weight:500;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
   .metric-val{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:28px;line-height:1;color:var(--text);letter-spacing:-0.02em}
   .metric-val .unit{font-size:13px;font-weight:400;color:var(--muted2);margin-left:2px}
-  .content-area{flex:1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:minmax(0,1.4fr) minmax(0,1fr) minmax(0,0.9fr) auto;gap:1px;background:var(--border);min-height:0}
+  /* content-area : hauteur fixe pour les 3 premières rows, row 4 (segments) auto */
+  .content-area{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:280px 200px 160px auto;gap:1px;background:var(--border)}
   .content-block{background:var(--bg);display:flex;flex-direction:column;overflow:hidden;padding:14px 16px}
   .content-block.block-segments{overflow:visible}
   .block-map{grid-column:1;grid-row:1;position:relative}
@@ -181,8 +184,13 @@
     <div class="panel-section">
       <div class="section-header"><span>👤</span><span class="section-header-label">Cycliste & Vélo</span></div>
       <div class="field">
-        <div class="field-label"><span>Poids total</span><span class="field-value" id="poidsVal">90 kg</span></div>
-        <input type="range" id="poids" min="40" max="150" value="90" oninput="document.getElementById('poidsVal').textContent=this.value+' kg'">
+        <div class="field-label"><span>Cycliste + équipements</span><span class="field-value" id="poidsCyclisteVal">75 kg</span></div>
+        <input type="range" id="poidsCycliste" min="40" max="130" value="75" oninput="updatePoidsTotal()">
+      </div>
+      <div class="field">
+        <div class="field-label"><span>Vélo</span><span class="field-value" id="poidsVeloVal">8 kg</span></div>
+        <input type="range" id="poidsVelo" min="4" max="20" value="8" oninput="updatePoidsTotal()">
+        <div class="field-hint">Total : <span id="poidsTotalVal" style="color:var(--accent);font-weight:600">83 kg</span></div>
       </div>
       <div class="field">
         <div class="field-label"><span>Aérodynamisme CdA</span><span class="field-value" id="cdaVal">0.26</span></div>
@@ -281,7 +289,7 @@
 
         <!-- Répartition -->
         <div class="content-block block-repartition">
-          <div class="block-title">📊 Répartition du profil</div>
+          <div class="block-title">📊 Répartition du profil <span style="color:var(--muted);font-weight:400;font-size:9px;letter-spacing:0.05em;text-transform:none;margin-left:4px">(montée ≥ 4%, descente ≤ −4%)</span></div>
           <div class="repartition-list">
             <div class="rep-row"><span class="rep-label">Montées</span><div class="rep-bar-wrap"><div class="rep-bar" id="barMontees" style="width:0%;background:var(--warn)"></div></div><span class="rep-val" id="valMontees">—</span></div>
             <div class="rep-row"><span class="rep-label">Descentes</span><div class="rep-bar-wrap"><div class="rep-bar" id="barDescentes" style="width:0%;background:var(--accent2)"></div></div><span class="rep-val" id="valDescentes">—</span></div>
@@ -358,12 +366,23 @@ const crosshairPlugin={
 Chart.register(crosshairPlugin);
 
 function updateDir(val){const dirs=["N","NE","E","SE","S","SO","O","NO"];document.getElementById('dirVal').textContent=val+'° '+dirs[Math.round(val/45)%8]}
+function updatePoidsTotal(){
+  const c=parseInt(document.getElementById('poidsCycliste').value);
+  const v=parseInt(document.getElementById('poidsVelo').value);
+  document.getElementById('poidsCyclisteVal').textContent=c+' kg';
+  document.getElementById('poidsVeloVal').textContent=v+' kg';
+  document.getElementById('poidsTotalVal').textContent=(c+v)+' kg';
+}
 function togglePeloton(){pelotonOn=!pelotonOn;document.getElementById('pelotonToggle').classList.toggle('on',pelotonOn);document.getElementById('pelotonExtra').classList.toggle('visible',pelotonOn)}
 function toggleSegments(){
   segVisible=!segVisible;
   document.getElementById('tableWrap').style.display=segVisible?'block':'none';
   document.getElementById('segClosed').style.display=segVisible?'none':'flex';
   document.getElementById('segToggle').textContent=segVisible?'▲ Masquer':'▼ Afficher';
+  if(!segVisible){
+    // Remonter en haut du panel-right
+    document.querySelector('.panel-right').scrollTo({top:0,behavior:'smooth'});
+  }
 }
 
 document.getElementById('gpxFile').addEventListener('change',function(){
@@ -399,7 +418,7 @@ async function lancerSimulation(){
   const form=new FormData();
   form.append('fichier',file);
   form.append('puissance_w',document.getElementById('watts').value);
-  form.append('poids_kg',document.getElementById('poids').value);
+  form.append('poids_kg', parseInt(document.getElementById('poidsCycliste').value) + parseInt(document.getElementById('poidsVelo').value));
   form.append('cda',document.getElementById('cda').value);
   form.append('v_vent_kmh',document.getElementById('vent').value);
   form.append('dir_vent_deg',document.getElementById('dir').value);
@@ -611,12 +630,12 @@ function afficherResultats(data){
   });
   attachCursor(comboCanvas,'combo');
 
-  // ── Répartition du profil ──
+  // ── Répartition du profil (seuil : montée ≥4%, descente ≤-4%) ──
   const tTotal=data.temps_total_s;
   let tMontees=0,tDescentes=0,tPlat=0;
   for(const s of segs){
-    if(s.pente_pct>1.5)tMontees+=s.temps_seg_s;
-    else if(s.pente_pct<-1.5)tDescentes+=s.temps_seg_s;
+    if(s.pente_pct>=4)tMontees+=s.temps_seg_s;
+    else if(s.pente_pct<=-4)tDescentes+=s.temps_seg_s;
     else tPlat+=s.temps_seg_s;
   }
   const pctM=tTotal>0?Math.round(tMontees/tTotal*100):0;
@@ -632,16 +651,17 @@ function afficherResultats(data){
   document.getElementById('valDescentes').textContent=fmtH(tDescentes)+' ('+pctD+'%)';
   document.getElementById('valPlat').textContent=fmtH(tPlat)+' ('+pctP+'%)';
 
-  // ── Segment critique : fenêtre 1 km autour du point le plus raide ──
+  // ── Segment critique : fenêtre ±5m (10m) autour du point le plus raide ──
   const segMaxPente=segs.reduce((a,s)=>s.pente_pct>a.pente_pct?s:a,segs[0]);
   const centerKm=segMaxPente.distance_cumulee_km;
-  const window1km=segs.filter(s=>Math.abs(s.distance_cumulee_km-centerKm)<=0.5);
-  const penteMax1km=window1km.length?+(window1km.reduce((a,s)=>a+s.pente_pct,0)/window1km.length).toFixed(1):segMaxPente.pente_pct;
-  const vitesse1km=window1km.length?+(window1km.reduce((a,s)=>a+s.vitesse_kmh,0)/window1km.length).toFixed(1):segMaxPente.vitesse_kmh;
-  const watts1km=window1km.length?Math.round(window1km.reduce((a,s)=>a+s.watts,0)/window1km.length):segMaxPente.watts;
-  document.getElementById('critPente').innerHTML=penteMax1km+'<span class="unit">%</span>';
-  document.getElementById('critVitesse').innerHTML=vitesse1km+'<span class="unit">km/h</span>';
-  document.getElementById('critWatts').innerHTML=watts1km+'<span class="unit">W</span>';
+  const window10m=segs.filter(s=>Math.abs(s.distance_cumulee_km-centerKm)<=0.005);
+  const w=window10m.length?window10m:[segMaxPente];
+  const penteMax10m=+(w.reduce((a,s)=>a+s.pente_pct,0)/w.length).toFixed(1);
+  const vitesse10m=+(w.reduce((a,s)=>a+s.vitesse_kmh,0)/w.length).toFixed(1);
+  const watts10m=Math.round(w.reduce((a,s)=>a+s.watts,0)/w.length);
+  document.getElementById('critPente').innerHTML=penteMax10m+'<span class="unit">%</span>';
+  document.getElementById('critVitesse').innerHTML=vitesse10m+'<span class="unit">km/h</span>';
+  document.getElementById('critWatts').innerHTML=watts10m+'<span class="unit">W</span>';
 
   // ── Table segments ──
   const tbody=document.getElementById('tableBody');tbody.innerHTML='';
