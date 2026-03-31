@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ALLURE — Simulateur Cycliste</title>
+<title>PAC.R — Simulateur Cycliste</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
@@ -67,7 +67,7 @@
 
   .panel-section{padding:20px 16px 0}
   .section-header{display:flex;align-items:center;gap:8px;margin-bottom:14px;padding:10px 12px;background:var(--primary);border-radius:10px}
-  .section-icon{width:26px;height:26px;border-radius:7px;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+  .section-icon{width:28px;height:28px;border-radius:7px;background:var(--surface-low);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;line-height:1}
   .section-header-label{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:#fff}
 
   /* Upload zone */
@@ -85,10 +85,10 @@
   .file-name{font-size:11px;color:var(--primary);margin-top:8px;font-weight:600;display:none;background:var(--surface-low);padding:4px 8px;border-radius:6px}
 
   /* Fields */
-  .field{margin-bottom:14px}
-  .field-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-  .field-label span:first-child{font-size:11px;font-weight:500;letter-spacing:0.04em;color:var(--on-surface-variant)}
-  .field-value{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px;color:var(--primary)}
+  .field{margin-bottom:16px}
+  .field-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .field-label span:first-child{font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.06em;color:var(--primary)}
+  .field-value{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px;color:var(--secondary);background:var(--surface-container);padding:2px 8px;border-radius:6px}
   .field-hint{font-size:10px;color:var(--secondary);margin-top:5px;line-height:1.5}
 
   /* CdA legend */
@@ -96,9 +96,13 @@
   .cda-legend-item{display:flex;align-items:center;gap:5px;font-size:9.5px;color:var(--on-surface-variant);line-height:1.4}
   .cda-legend-item .cda-val{font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--primary);font-size:10px;flex-shrink:0}
 
-  /* Range inputs */
-  input[type="range"]{width:100%;height:3px;appearance:none;background:var(--surface-container);outline:none;cursor:pointer;border-radius:2px}
-  input[type="range"]::-webkit-slider-thumb{appearance:none;width:14px;height:14px;background:var(--primary);border-radius:50%;cursor:pointer;box-shadow:0 2px 6px rgba(0,37,66,0.3)}
+  /* Range inputs — piste plus épaisse et visible */
+  input[type="range"]{width:100%;height:6px;appearance:none;background:var(--surface-high);outline:none;cursor:pointer;border-radius:4px}
+  input[type="range"]::-webkit-slider-thumb{appearance:none;width:18px;height:18px;background:var(--primary);border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,37,66,0.35);border:2px solid #fff;transition:transform 0.15s}
+  input[type="range"]::-webkit-slider-thumb:hover{transform:scale(1.15)}
+  input[type="range"]::-moz-range-thumb{width:18px;height:18px;background:var(--primary);border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(0,37,66,0.35);border:2px solid #fff}
+  /* Piste remplie côté gauche via gradient dynamique — fallback couleur forte */
+  input[type="range"]::-webkit-slider-runnable-track{height:6px;border-radius:4px}
 
   /* Number input */
   .number-input{
@@ -154,7 +158,7 @@
   .results.visible{display:flex}
 
   /* KPI row */
-  .metrics-row{display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface-lowest);flex-shrink:0;box-shadow:var(--shadow-sm)}
+  .metrics-row{display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface-container);flex-shrink:0;box-shadow:var(--shadow-sm)}
   .metric-card{padding:20px 24px;position:relative;overflow:hidden}
   .metric-card+.metric-card{border-left:1px solid var(--outline-variant)}
   .metric-card::after{content:'';position:absolute;bottom:0;left:24px;right:24px;height:2px;background:var(--primary);transform:scaleX(0);transform-origin:left;transition:transform 0.7s ease;border-radius:2px}
@@ -238,6 +242,7 @@
   .critique-item.highlight{background:var(--primary)}
   .critique-item.highlight .critique-item-label{color:rgba(171,201,239,0.8)}
   .critique-item.highlight .critique-item-val{color:#fff}
+  .critique-item.highlight .critique-item-val .unit{color:rgba(255,255,255,0.7)}
 
   /* Table segments */
   .table-wrap{overflow-y:visible;flex:1}
@@ -275,14 +280,11 @@
 
 <!-- TOPBAR -->
 <div class="topbar">
-  <div class="logo">
+    <div class="logo">
     <div class="logo-badge">
       <svg viewBox="0 0 16 16"><path d="M2 8c0-3.3 2.7-6 6-6s6 2.7 6 6-2.7 6-6 6-6-2.7-6-6z"/><path d="M8 5v3l2 2"/></svg>
     </div>
-    <div>
-      <div>ALLURE</div>
-      <div class="logo-sub">Wind Tunnel Simulator</div>
-    </div>
+    <div>PAC.R</div>
   </div>
   <div class="status-pill" id="statusPill"><div class="dot"></div><span id="statusText">En attente</span></div>
 </div>
@@ -307,16 +309,16 @@
       <div class="section-header"><div class="section-icon">👤</div><span class="section-header-label">Cycliste & Vélo</span></div>
       <div class="field">
         <div class="field-label"><span>Cycliste + équipements</span><span class="field-value" id="poidsCyclisteVal">75 kg</span></div>
-        <input type="range" id="poidsCycliste" min="40" max="130" value="75" oninput="updatePoidsTotal()">
+        <input type="range" id="poidsCycliste" min="40" max="130" value="75" oninput="updatePoidsTotal();setSlider(this)">
       </div>
       <div class="field">
         <div class="field-label"><span>Vélo</span><span class="field-value" id="poidsVeloVal">8 kg</span></div>
-        <input type="range" id="poidsVelo" min="4" max="20" value="8" oninput="updatePoidsTotal()">
+        <input type="range" id="poidsVelo" min="4" max="20" value="8" oninput="updatePoidsTotal();setSlider(this)">
         <div class="field-hint">Total : <span id="poidsTotalVal" style="color:var(--primary);font-weight:700">83 kg</span></div>
       </div>
       <div class="field">
         <div class="field-label"><span>Aérodynamisme CdA</span><span class="field-value" id="cdaVal">0.26</span></div>
-        <input type="range" id="cda" min="0.20" max="0.50" value="0.26" step="0.01" oninput="document.getElementById('cdaVal').textContent=parseFloat(this.value).toFixed(2)">
+        <input type="range" id="cda" min="0.20" max="0.50" value="0.26" step="0.01" oninput="document.getElementById('cdaVal').textContent=parseFloat(this.value).toFixed(2);setSlider(this)">
         <div class="cda-legend">
           <div class="cda-legend-item"><span class="cda-val">0.24</span>CLM Performance</div>
           <div class="cda-legend-item"><span class="cda-val">0.27</span>CLM Sportif</div>
@@ -344,7 +346,7 @@
       <div class="peloton-extra" id="pelotonExtra">
         <div class="field">
           <div class="field-label"><span>Durée en peloton</span><span class="field-value" id="pelotonVal">1.0 h</span></div>
-          <input type="range" id="pelotonDuree" min="0" max="5" value="1" step="0.25" oninput="document.getElementById('pelotonVal').textContent=parseFloat(this.value).toFixed(1)+' h'">
+          <input type="range" id="pelotonDuree" min="0" max="5" value="1" step="0.25" oninput="document.getElementById('pelotonVal').textContent=parseFloat(this.value).toFixed(1)+' h';setSlider(this)">
         </div>
       </div>
     </div>
@@ -353,11 +355,11 @@
       <div class="section-header"><div class="section-icon">🌬️</div><span class="section-header-label">Météo</span></div>
       <div class="field">
         <div class="field-label"><span>Vitesse vent</span><span class="field-value" id="ventVal">5 km/h</span></div>
-        <input type="range" id="vent" min="0" max="80" value="5" oninput="document.getElementById('ventVal').textContent=this.value+' km/h'">
+        <input type="range" id="vent" min="0" max="80" value="5" oninput="document.getElementById('ventVal').textContent=this.value+' km/h';setSlider(this)">
       </div>
       <div class="field">
         <div class="field-label"><span>Direction vent</span><span class="field-value" id="dirVal">0° N</span></div>
-        <input type="range" id="dir" min="0" max="359" value="0" oninput="updateDir(this.value)">
+        <input type="range" id="dir" min="0" max="359" value="0" oninput="updateDir(this.value);setSlider(this)">
       </div>
     </div>
 
@@ -374,7 +376,7 @@
 
     <div class="empty-state" id="emptyState">
       <div class="empty-icon">🚴</div>
-      <div class="empty-title">ALLURE</div>
+      <div class="empty-title">PAC.R</div>
       <div class="empty-sub">Importe un fichier GPX et lance la simulation</div>
     </div>
 
@@ -426,7 +428,7 @@
           <div class="repartition-list">
             <div class="rep-row"><span class="rep-label">Montées</span><div class="rep-bar-wrap"><div class="rep-bar" id="barMontees" style="width:0%;background:var(--primary)"></div></div><span class="rep-val" id="valMontees">—</span></div>
             <div class="rep-row"><span class="rep-label">Descentes</span><div class="rep-bar-wrap"><div class="rep-bar" id="barDescentes" style="width:0%;background:var(--secondary)"></div></div><span class="rep-val" id="valDescentes">—</span></div>
-            <div class="rep-row"><span class="rep-label">Plat</span><div class="rep-bar-wrap"><div class="rep-bar" id="barPlat" style="width:0%;background:var(--surface-high)"></div></div><span class="rep-val" id="valPlat">—</span></div>
+            <div class="rep-row"><span class="rep-label">Plat</span><div class="rep-bar-wrap"><div class="rep-bar" id="barPlat" style="width:0%;background:#8eaabf"></div></div><span class="rep-val" id="valPlat">—</span></div>
           </div>
         </div>
 
@@ -521,6 +523,19 @@ const crosshairPlugin={
 Chart.register(crosshairPlugin);
 
 function updateDir(val){const dirs=["N","NE","E","SE","S","SO","O","NO"];document.getElementById('dirVal').textContent=val+'° '+dirs[Math.round(val/45)%8]}
+
+// ── Barre bleue qui suit le curseur ──
+function setSlider(el){
+  const min=parseFloat(el.min)||0;
+  const max=parseFloat(el.max)||100;
+  const val=parseFloat(el.value);
+  const pct=((val-min)/(max-min))*100;
+  el.style.background=`linear-gradient(to right,#002542 0%,#002542 ${pct}%,#e4e9ed ${pct}%,#e4e9ed 100%)`;
+}
+// Initialiser tous les sliders au chargement
+document.addEventListener('DOMContentLoaded',()=>{
+  document.querySelectorAll('input[type="range"]').forEach(setSlider);
+});
 function updatePoidsTotal(){
   const c=parseInt(document.getElementById('poidsCycliste').value);
   const v=parseInt(document.getElementById('poidsVelo').value);
@@ -542,7 +557,7 @@ document.getElementById('gpxFile').addEventListener('change',function(){
     const fn=document.getElementById('fileName');
     fn.textContent='✓ '+this.files[0].name;fn.style.display='block';
     document.getElementById('btnSimulate').disabled=false;
-    document.getElementById('btnText').textContent='Simuler';
+    document.getElementById('btnText').textContent='PACER';
     setStatus('ready','Prêt');
   }
 });
